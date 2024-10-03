@@ -4,99 +4,160 @@ import sys
 CELL_SIZE = 20
 
 
-class Line:
-    def __init__(self, start, end):
-        self.start = start  # Tuple (x, y)
-        self.end = end      # Tuple (x, y)
-        self.active = False # Whether the line is drawn or not
-
-    def toggle(self):
-        """Toggle the line on/off."""
-        self.active = not self.active
-
-    def draw(self, window, color= (50, 50, 255), width= 3):
-        """Draw the line on the screen if it's active."""
-        if self.active:
-            pygame.draw.line(window, color,
-                             (self.start[0] * CELL_SIZE, self.start[1] * CELL_SIZE),
-                             (self.end[0] * CELL_SIZE, self.end[1] * CELL_SIZE), width)
-
-
 class Cell:
-    def __init__(self, row, col, number=None):
-        self.row = row  # Row position of the cell
-        self.col = col  # Column position of the cell
-        self.number = number  # The number inside the cell (0, 1, 2, 3) or None
+    def __init__(self, row, col):
+        self.row = row  # Row index
+        self.col = col  # Column index
 
-        # The four lines: top, right, bottom, left (clockwise)
-        self.lines = {
+        # Borders: Whether each border is active (True or False)
+        self.borders = {
             'top': None,
             'right': None,
             'bottom': None,
             'left': None
         }
 
-    def set_lines(self, top, right, bottom, left):
-        """Assign the four lines for the cell."""
-        self.lines['top'] = top
-        self.lines['right'] = right
-        self.lines['bottom'] = bottom
-        self.lines['left'] = left
-
-    def is_satisfied(self):
-        """Check if the number of active lines matches the cell's number."""
-        active_lines = sum(line.active for line in self.lines.values())
-        return active_lines == self.number if self.number is not None else True
+    def toggle_border(self, border):
+        """Toggle a specific border (top, right, bottom, left)."""
+        if border in self.borders:
+            if self.borders[border] is None:
+                self.borders[border] = True
+            elif self.borders[border] is True:
+                self.borders[border] = False
+            elif self.borders[border] is False:
+                self.borders[border] = None
 
     def draw(self, window):
-        """Draw the number inside the cell."""
-        if self.number is not None:
-            font = pygame.font.SysFont(None, 36)
-            num_surface = font.render(str(self.number), True, BLACK)
-            window.blit(num_surface, (self.col * CELL_SIZE + CELL_SIZE // 2 - 10,
-                                      self.row * CELL_SIZE + CELL_SIZE // 2 - 10))
+        """Draw the borders (active borders with thick lines) for the cell."""
+        x, y = self.col * CELL_SIZE, self.row * CELL_SIZE
+
+        # Draw borders (thicker lines for active borders)
+        if self.borders['top']:
+            pygame.draw.line(window, BLACK, (x, y), (x + CELL_SIZE, y), 4)
+        if self.borders['right']:
+            pygame.draw.line(window, BLACK, (x + CELL_SIZE, y), (x + CELL_SIZE, y + CELL_SIZE), 4)
+        if self.borders['bottom']:
+            pygame.draw.line(window, BLACK, (x, y + CELL_SIZE), (x + CELL_SIZE, y + CELL_SIZE), 4)
+        if self.borders['left']:
+            pygame.draw.line(window, BLACK, (x, y), (x, y + CELL_SIZE), 4)
+        if self.borders['top'] is False:
+            pygame.draw.line(window, RED, (x, y), (x + CELL_SIZE, y), 4)
+        if self.borders['right'] is False:
+            pygame.draw.line(window, RED, (x + CELL_SIZE, y), (x + CELL_SIZE, y + CELL_SIZE), 4)
+        if self.borders['bottom'] is False:
+            pygame.draw.line(window, RED, (x, y + CELL_SIZE), (x + CELL_SIZE, y + CELL_SIZE), 4)
+        if self.borders['left'] is False:
+            pygame.draw.line(window, RED, (x, y), (x, y + CELL_SIZE), 4)
+
+
+class Grid:
+    def __init__(self, rows, cols):
+        self.rows = rows
+        self.cols = cols
+        self.cells = []
+
+        # Create the grid
+        self.create_grid()
+
+    def create_grid(self):
+        """Create a grid with cells."""
+        for row in range(self.rows):
+            cell_row = []
+            for col in range(self.cols):
+                cell = Cell(row, col)
+                cell_row.append(cell)
+            self.cells.append(cell_row)
+
+    def handle_click(self, pos):
+        """Handle clicks and toggle the nearest border of a cell."""
+        x, y = pos
+        col, row = x // CELL_SIZE, y // CELL_SIZE
+
+        if row < self.rows and col < self.cols:
+            cell = self.cells[row][col]
+            cell_x, cell_y = col * CELL_SIZE, row * CELL_SIZE
+
+            # Find the distance to each border
+            distances = {
+                'top': abs(y - cell_y),
+                'right': abs(x - (cell_x + CELL_SIZE)),
+                'bottom': abs(y - (cell_y + CELL_SIZE)),
+                'left': abs(x - cell_x)
+            }
+
+            # Find the nearest border (minimum distance)
+            nearest_border = min(distances, key=distances.get)
+
+            # Toggle the nearest border
+            cell.toggle_border(nearest_border)
+
+            if nearest_border == "top" and row != 0:
+                adjacent_cell = self.cells[row - 1][col]
+                adjacent_cell.toggle_border("bottom")
+            if nearest_border == "bottom" and row != self.rows - 1:
+                adjacent_cell = self.cells[row + 1][col]
+                adjacent_cell.toggle_border("top")
+            if nearest_border == "left" and col != 0:
+                adjacent_cell = self.cells[row][col - 1]
+                adjacent_cell.toggle_border("right")
+            if nearest_border == "right" and col != self.cols - 1:
+                adjacent_cell = self.cells[row][col + 1]
+                adjacent_cell.toggle_border("left")
+
+    def draw(self, window):
+        """Draw all the cells."""
+        for row in self.cells:
+            for cell in row:
+                cell.draw(window)
 
 
 # Initialize pygame
 pygame.init()
 
-# Set window dimensions
+# Window settings
 WIDTH, HEIGHT = 600, 600
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Slitherlink")
+pygame.display.set_caption("Dynamic Slitherlink")
 
-# Set the FPS (Frames Per Second)
-FPS = 30
+# Frame rate settings
+FPS = 60
+clock = pygame.time.Clock()
 
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GRAY = (200, 200, 200)
-BLUE = (50, 50, 255)
+RED = (255, 0, 0)
 
-# Game clock
-clock = pygame.time.Clock()
+# Cell and Grid size
+CELL_SIZE = 100
 
-# Game Loop
+# Create a grid object
+grid = Grid(5, 5)
+
+
 def game_loop():
     running = True
     while running:
-        # Handle Events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                grid.handle_click(mouse_pos)
 
-        # Game Logic Here
-
-        # Draw Everything
+        # Fill the screen with a white background
         WINDOW.fill(WHITE)
-        # draw_grid()  # Call this function to draw the game grid
 
+        # Draw the grid of cells
+        grid.draw(WINDOW)
+
+        # Update the display with the latest changes
         pygame.display.flip()
         clock.tick(FPS)
 
     pygame.quit()
     sys.exit()
+
 
 if __name__ == "__main__":
     game_loop()
