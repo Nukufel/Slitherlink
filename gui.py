@@ -162,42 +162,55 @@ class Grid:
                 adjacent_cell.toggle_border("left")
 
     def make_puzzle(self):
-        found_greens = [self.get_start_green()]
         blue_counter = 1
+        failed_trys = 0
         ways = ("up", "right", "down", "left")
 
-        next_cell = self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]
-        next_cell.color = BLUE
+        current_cell = self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]
+        current_cell.color = BLUE
 
         while True:
-            blue_counter += 1
+            previous_cell = current_cell
             way = random.choice(ways)
-
+            print(f"there are {blue_counter} blue squares at {current_cell.row}, {current_cell.col} | next suqare is {way}")
             match way:
                 case "up":
-                    try:
-                        next_cell = self.cells[next_cell.row - 1][next_cell.col]
-                        next_cell.color = BLUE
-                    except:
-                        pass
+                    if current_cell.row != 0 and self.cells[current_cell.row - 1][current_cell.col] is not BLUE:
+                        current_cell = self.cells[current_cell.row - 1][current_cell.col]
+                        current_cell.color = BLUE
+                        blue_counter += 1
+                    else:
+                        print("no worke")
                 case "right":
-                    try:
-                        next_cell = self.cells[next_cell.row][next_cell.col + 1]
-                        next_cell.color = BLUE
-                    except:
-                        pass
+                    if current_cell.col != self.cols - 1 and self.cells[current_cell.row][current_cell.col + 1] is not BLUE:
+                        current_cell = self.cells[current_cell.row][current_cell.col + 1]
+                        current_cell.color = BLUE
+                        blue_counter += 1
+                    else:
+                        print("no worke")
                 case "down":
-                    try:
-                        next_cell = self.cells[next_cell.row + 1][next_cell.col]
-                        next_cell.color = BLUE
-                    except:
-                        pass
+                    if current_cell.col != self.rows - 1 and self.cells[current_cell.row + 1][current_cell.col] is not BLUE:
+                        current_cell = self.cells[current_cell.row + 1][current_cell.col]
+                        current_cell.color = BLUE
+                        blue_counter += 1
+                    else:
+                        print("no worke")
                 case "left":
-                    try:
-                        next_cell = self.cells[next_cell.row][next_cell.col - 1]
-                        next_cell.color = BLUE
-                    except:
-                        pass
+                    if current_cell.col != 0 and self.cells[current_cell.row][current_cell.col - 1] is not BLUE:
+                        current_cell = self.cells[current_cell.row][current_cell.col - 1]
+                        current_cell.color = BLUE
+                        blue_counter += 1
+                    else:
+                        print("no worke")
+
+            if not self.all_connected(blue_counter):
+                if failed_trys < 4:
+                    failed_trys += 1
+                    current_cell = previous_cell
+                else:
+                    break
+            else:
+                failed_trys = 0
 
     def get_start_green(self):
         row = random.choice([0, self.rows - 1])
@@ -208,42 +221,44 @@ class Grid:
         else:
             return self.get_start_green()
 
-    def get_all_connected(self, found_greens):
+    def all_connected(self, blue_count):
+        found_greens = [self.get_start_green()]
+
         for start_green in found_greens:
             try:
-                if (self.cells[start_green.row - 1][start_green.col].color is GREEN and
+                if (self.cells[start_green.row - 1][start_green.col].color is not BLUE and
                         self.cells[start_green.row - 1][start_green.col] not in found_greens):  # check up
                     found_greens.append(self.cells[start_green.row - 1][start_green.col])
             except:
                 pass
 
             try:
-                if (self.cells[start_green.row][start_green.col + 1].color is GREEN and
+                if (self.cells[start_green.row][start_green.col + 1].color is not BLUE and
                         self.cells[start_green.row][start_green.col + 1] not in found_greens):  # check right
                     found_greens.append(self.cells[start_green.row][start_green.col + 1])
             except:
                 pass
 
             try:
-                if (self.cells[start_green.row + 1][start_green.col].color is GREEN and
+                if (self.cells[start_green.row + 1][start_green.col].color is not BLUE and
                         self.cells[start_green.row + 1][start_green.col] not in found_greens):  # check down
-                    found_greens.append(self.cells[start_green.row][start_green.col + 1])
+                    found_greens.append(self.cells[start_green.row + 1][start_green.col])
             except:
                 pass
 
             try:
-                if (self.cells[start_green.row][start_green.col - 1].color is GREEN and
+                if (self.cells[start_green.row][start_green.col - 1].color is not BLUE and
                         self.cells[start_green.row][start_green.col - 1] not in found_greens):  # check left
-                    found_greens.append(self.cells[start_green.row][start_green.col + 1])
+                    found_greens.append(self.cells[start_green.row][start_green.col - 1])
             except:
                 pass
 
-        print(len(found_greens))
-
-
-
-
-
+        max_cells = self.rows * self.cols
+        #print(f"len found_greens {len(found_greens)}")
+        #print(f"blue_count {blue_count}")
+        if max_cells - blue_count == len(found_greens):
+            return True
+        return False
 
 
 # Initialize pygame
@@ -267,7 +282,7 @@ GREEN = (0, 255, 0)
 
 # Cell and Grid size
 CELL_SIZE = 50
-GRID_ROWS, GRID_COLS = 10, 10
+GRID_ROWS, GRID_COLS = 5, 5
 
 # Padding around the grid to prevent border cutoff
 PADDING = 10  # Add some padding around the grid
