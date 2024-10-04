@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import sys
 
@@ -8,6 +10,7 @@ class Cell:
     def __init__(self, row, col):
         self.row = row  # Row index
         self.col = col  # Column index
+        self.color = GREEN
 
         # Borders: Whether each border is active (True or False)
         self.borders = {
@@ -89,6 +92,11 @@ class Cell:
             pygame.draw.line(window, RED, start1, end1, 4)
             pygame.draw.line(window, RED, start2, end2, 4)
 
+        pygame.draw.line(window, self.color, (x,y), (x+CELL_SIZE, y+CELL_SIZE), 4)
+
+
+
+
 
 class Grid:
     def __init__(self, rows, cols):
@@ -107,6 +115,9 @@ class Grid:
                 cell = Cell(row, col)
                 cell_row.append(cell)
             self.cells.append(cell_row)
+
+        self.make_puzzle()
+
 
     def draw(self, window, offset_x=0, offset_y=0):
         """Draw all the cells with a provided offset."""
@@ -150,6 +161,90 @@ class Grid:
                 adjacent_cell = self.cells[row][col + 1]
                 adjacent_cell.toggle_border("left")
 
+    def make_puzzle(self):
+        found_greens = [self.get_start_green()]
+        blue_counter = 1
+        ways = ("up", "right", "down", "left")
+
+        next_cell = self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]
+        next_cell.color = BLUE
+
+        while True:
+            blue_counter += 1
+            way = random.choice(ways)
+
+            match way:
+                case "up":
+                    try:
+                        next_cell = self.cells[next_cell.row - 1][next_cell.col]
+                        next_cell.color = BLUE
+                    except:
+                        pass
+                case "right":
+                    try:
+                        next_cell = self.cells[next_cell.row][next_cell.col + 1]
+                        next_cell.color = BLUE
+                    except:
+                        pass
+                case "down":
+                    try:
+                        next_cell = self.cells[next_cell.row + 1][next_cell.col]
+                        next_cell.color = BLUE
+                    except:
+                        pass
+                case "left":
+                    try:
+                        next_cell = self.cells[next_cell.row][next_cell.col - 1]
+                        next_cell.color = BLUE
+                    except:
+                        pass
+
+    def get_start_green(self):
+        row = random.choice([0, self.rows - 1])
+        col = random.choice([0, self.cols - 1])
+
+        if self.cells[row][col].color is not BLUE:
+            return self.cells[row][col]
+        else:
+            return self.get_start_green()
+
+    def get_all_connected(self, found_greens):
+        for start_green in found_greens:
+            try:
+                if (self.cells[start_green.row - 1][start_green.col].color is GREEN and
+                        self.cells[start_green.row - 1][start_green.col] not in found_greens):  # check up
+                    found_greens.append(self.cells[start_green.row - 1][start_green.col])
+            except:
+                pass
+
+            try:
+                if (self.cells[start_green.row][start_green.col + 1].color is GREEN and
+                        self.cells[start_green.row][start_green.col + 1] not in found_greens):  # check right
+                    found_greens.append(self.cells[start_green.row][start_green.col + 1])
+            except:
+                pass
+
+            try:
+                if (self.cells[start_green.row + 1][start_green.col].color is GREEN and
+                        self.cells[start_green.row + 1][start_green.col] not in found_greens):  # check down
+                    found_greens.append(self.cells[start_green.row][start_green.col + 1])
+            except:
+                pass
+
+            try:
+                if (self.cells[start_green.row][start_green.col - 1].color is GREEN and
+                        self.cells[start_green.row][start_green.col - 1] not in found_greens):  # check left
+                    found_greens.append(self.cells[start_green.row][start_green.col + 1])
+            except:
+                pass
+
+        print(len(found_greens))
+
+
+
+
+
+
 
 # Initialize pygame
 pygame.init()
@@ -167,6 +262,8 @@ clock = pygame.time.Clock()
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
 
 # Cell and Grid size
 CELL_SIZE = 50
