@@ -118,7 +118,6 @@ class Grid:
 
         self.make_puzzle()
 
-
     def draw(self, window, offset_x=0, offset_y=0):
         """Draw all the cells with a provided offset."""
         for row in self.cells:
@@ -169,41 +168,46 @@ class Grid:
         current_cell = self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]
         current_cell.color = BLUE
 
+
         while True:
             previous_cell = current_cell
             way = random.choice(ways)
             print(f"there are {blue_counter} blue squares at {current_cell.row}, {current_cell.col} | next suqare is {way}")
             match way:
                 case "up":
-                    if current_cell.row != 0 and self.cells[current_cell.row - 1][current_cell.col] is not BLUE:
+                    if current_cell.row != 0 and self.cells[current_cell.row - 1][current_cell.col].color != BLUE:
                         current_cell = self.cells[current_cell.row - 1][current_cell.col]
                         current_cell.color = BLUE
                         blue_counter += 1
                     else:
                         print("no worke")
                 case "right":
-                    if current_cell.col != self.cols - 1 and self.cells[current_cell.row][current_cell.col + 1] is not BLUE:
+                    if current_cell.col != self.cols - 1 and self.cells[current_cell.row][current_cell.col + 1].color != BLUE:
                         current_cell = self.cells[current_cell.row][current_cell.col + 1]
                         current_cell.color = BLUE
                         blue_counter += 1
                     else:
                         print("no worke")
                 case "down":
-                    if current_cell.col != self.rows - 1 and self.cells[current_cell.row + 1][current_cell.col] is not BLUE:
+                    if current_cell.row != self.rows - 1 and self.cells[current_cell.row + 1][current_cell.col].color != BLUE:
                         current_cell = self.cells[current_cell.row + 1][current_cell.col]
                         current_cell.color = BLUE
                         blue_counter += 1
                     else:
                         print("no worke")
                 case "left":
-                    if current_cell.col != 0 and self.cells[current_cell.row][current_cell.col - 1] is not BLUE:
-                        current_cell = self.cells[current_cell.row][current_cell.col - 1]
-                        current_cell.color = BLUE
-                        blue_counter += 1
+                    if current_cell.col != 0:
+                        if self.cells[current_cell.row][current_cell.col - 1].color != BLUE:
+                            current_cell = self.cells[current_cell.row][current_cell.col - 1]
+                            current_cell.color = BLUE
+                            blue_counter += 1
+                        else:
+                            print("is blue")
                     else:
-                        print("no worke")
+                        print("is 0")
 
             if not self.all_connected(blue_counter):
+                current_cell.color = GREEN
                 if failed_trys < 4:
                     failed_trys += 1
                     current_cell = previous_cell
