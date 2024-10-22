@@ -63,24 +63,24 @@ class Cell:
         if self.borders['left']:
             pygame.draw.line(window, BLACK, (x, y), (x, y + CELL_SIZE), 4)
         if self.borders['top'] is False:
-            start1 = (x + CELL_SIZE/2 - 5, y - 5)
-            end1 = (x + CELL_SIZE/2 + 5, y + 5)
-            start2 = (x + CELL_SIZE/2 - 5, y + 5)
-            end2 = (x + CELL_SIZE/2 + 5, y - 5)
+            start1 = (x + CELL_SIZE / 2 - 5, y - 5)
+            end1 = (x + CELL_SIZE / 2 + 5, y + 5)
+            start2 = (x + CELL_SIZE / 2 - 5, y + 5)
+            end2 = (x + CELL_SIZE / 2 + 5, y - 5)
             pygame.draw.line(window, RED, start1, end1, 4)
             pygame.draw.line(window, RED, start2, end2, 4)
         if self.borders['right'] is False:
-            start1 = (x + CELL_SIZE - 5, y + CELL_SIZE/2 - 5)
-            end1 = (x + CELL_SIZE + 5, y + CELL_SIZE/2 + 5)
+            start1 = (x + CELL_SIZE - 5, y + CELL_SIZE / 2 - 5)
+            end1 = (x + CELL_SIZE + 5, y + CELL_SIZE / 2 + 5)
             start2 = (x + CELL_SIZE + 5, y + CELL_SIZE / 2 - 5)
             end2 = (x + CELL_SIZE - 5, y + CELL_SIZE / 2 + 5)
             pygame.draw.line(window, RED, start1, end1, 4)
             pygame.draw.line(window, RED, start2, end2, 4)
         if self.borders['bottom'] is False:
-            start1 = (x + CELL_SIZE/2 - 5, y + CELL_SIZE - 5)
-            end1 = (x + CELL_SIZE/2 + 5, y + CELL_SIZE + 5)
-            start2 = (x + CELL_SIZE/2 - 5, y + CELL_SIZE + 5)
-            end2 = (x + CELL_SIZE/2 + 5, y + CELL_SIZE - 5)
+            start1 = (x + CELL_SIZE / 2 - 5, y + CELL_SIZE - 5)
+            end1 = (x + CELL_SIZE / 2 + 5, y + CELL_SIZE + 5)
+            start2 = (x + CELL_SIZE / 2 - 5, y + CELL_SIZE + 5)
+            end2 = (x + CELL_SIZE / 2 + 5, y + CELL_SIZE - 5)
             pygame.draw.line(window, RED, start1, end1, 4)
             pygame.draw.line(window, RED, start2, end2, 4)
         if self.borders['left'] is False:
@@ -91,10 +91,7 @@ class Cell:
             pygame.draw.line(window, RED, start1, end1, 4)
             pygame.draw.line(window, RED, start2, end2, 4)
 
-        pygame.draw.line(window, self.color, (x,y), (x+CELL_SIZE, y+CELL_SIZE), 4)
-
-
-
+        pygame.draw.line(window, self.color, (x, y), (x + CELL_SIZE, y + CELL_SIZE), 4)
 
 
 class Grid:
@@ -115,7 +112,8 @@ class Grid:
                 cell_row.append(cell)
             self.cells.append(cell_row)
 
-        #self.make_puzzle()
+        # self.make_puzzle()
+
 
     def draw(self, window, offset_x=0, offset_y=0):
         """Draw all the cells with a provided offset."""
@@ -162,21 +160,17 @@ class Grid:
     def make_puzzle(self):
         pass
 
-
-
-
     def get_start_green(self):
-        row = random.choice([0, self.rows - 1])
-        col = random.choice([0, self.cols - 1])
-
-        if self.cells[row][col].color is not BLUE:
-            return self.cells[row][col]
-        else:
-            return self.get_start_green()
+        start_greens = []
+        for row in self.cells:
+            for cell in row:
+                if (cell.row in [0, self.rows - 1] or cell.col in [0, self.cols - 1]) and cell.color == GREEN:
+                    start_greens.append(cell)
+        return start_greens
 
     def all_connected(self, blue_count):
         # TODO call get_start more often for all rand pieces
-        found_greens = [self.get_start_green()]
+        found_greens = self.get_start_green()
 
         for start_green in found_greens:
             try:
@@ -208,6 +202,7 @@ class Grid:
                 pass
 
         max_cells = self.rows * self.cols
+
         if max_cells - blue_count == len(found_greens):
             return True
         return False
@@ -245,7 +240,6 @@ GRID_HEIGHT = GRID_ROWS * CELL_SIZE + PADDING * 2
 
 # Create a grid object
 grid = Grid(GRID_ROWS, GRID_COLS)
-
 
 
 def game_loop():
@@ -295,4 +289,3 @@ def game_loop():
 
 if __name__ == "__main__":
     game_loop()
-
