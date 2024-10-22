@@ -1,5 +1,4 @@
 import random
-
 import pygame
 import sys
 
@@ -116,7 +115,7 @@ class Grid:
                 cell_row.append(cell)
             self.cells.append(cell_row)
 
-        self.make_puzzle()
+        #self.make_puzzle()
 
     def draw(self, window, offset_x=0, offset_y=0):
         """Draw all the cells with a provided offset."""
@@ -161,60 +160,10 @@ class Grid:
                 adjacent_cell.toggle_border("left")
 
     def make_puzzle(self):
-        blue_counter = 1
-        failed_trys = 0
-        ways = ("up", "right", "down", "left")
-
-        current_cell = self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]
-        current_cell.color = BLUE
+        pass
 
 
-        while True:
-            previous_cell = current_cell
-            way = random.choice(ways)
-            print(f"there are {blue_counter} blue squares at {current_cell.row}, {current_cell.col} | next suqare is {way}")
-            match way:
-                case "up":
-                    if current_cell.row != 0 and self.cells[current_cell.row - 1][current_cell.col].color != BLUE:
-                        current_cell = self.cells[current_cell.row - 1][current_cell.col]
-                        current_cell.color = BLUE
-                        blue_counter += 1
-                    else:
-                        print("no worke")
-                case "right":
-                    if current_cell.col != self.cols - 1 and self.cells[current_cell.row][current_cell.col + 1].color != BLUE:
-                        current_cell = self.cells[current_cell.row][current_cell.col + 1]
-                        current_cell.color = BLUE
-                        blue_counter += 1
-                    else:
-                        print("no worke")
-                case "down":
-                    if current_cell.row != self.rows - 1 and self.cells[current_cell.row + 1][current_cell.col].color != BLUE:
-                        current_cell = self.cells[current_cell.row + 1][current_cell.col]
-                        current_cell.color = BLUE
-                        blue_counter += 1
-                    else:
-                        print("no worke")
-                case "left":
-                    if current_cell.col != 0:
-                        if self.cells[current_cell.row][current_cell.col - 1].color != BLUE:
-                            current_cell = self.cells[current_cell.row][current_cell.col - 1]
-                            current_cell.color = BLUE
-                            blue_counter += 1
-                        else:
-                            print("is blue")
-                    else:
-                        print("is 0")
 
-            if not self.all_connected(blue_counter):
-                current_cell.color = GREEN
-                if failed_trys < 4:
-                    failed_trys += 1
-                    current_cell = previous_cell
-                else:
-                    break
-            else:
-                failed_trys = 0
 
     def get_start_green(self):
         row = random.choice([0, self.rows - 1])
@@ -226,6 +175,7 @@ class Grid:
             return self.get_start_green()
 
     def all_connected(self, blue_count):
+        # TODO call get_start more often for all rand pieces
         found_greens = [self.get_start_green()]
 
         for start_green in found_greens:
@@ -258,8 +208,6 @@ class Grid:
                 pass
 
         max_cells = self.rows * self.cols
-        #print(f"len found_greens {len(found_greens)}")
-        #print(f"blue_count {blue_count}")
         if max_cells - blue_count == len(found_greens):
             return True
         return False
@@ -286,7 +234,7 @@ GREEN = (0, 255, 0)
 
 # Cell and Grid size
 CELL_SIZE = 50
-GRID_ROWS, GRID_COLS = 5, 5
+GRID_ROWS, GRID_COLS = 10, 10
 
 # Padding around the grid to prevent border cutoff
 PADDING = 10  # Add some padding around the grid
