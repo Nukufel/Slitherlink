@@ -1,6 +1,9 @@
-from settings import CELL_SIZE, BLUE
+from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS
 from cell import Cell
+import random
 
+
+CELL_COUNT = GRID_COLS * GRID_ROWS
 
 class Grid:
     def __init__(self, rows, cols):
@@ -20,7 +23,7 @@ class Grid:
                 cell_row.append(cell)
             self.cells.append(cell_row)
 
-        # self.make_puzzle()
+        self.make_puzzle()
 
     def draw(self, window, offset_x=0, offset_y=0):
         """Draw all the cells with a provided offset."""
@@ -65,9 +68,15 @@ class Grid:
                 adjacent_cell.toggle_border("left")
 
     def make_puzzle(self):
-        pass
+        #directions = ["top", "right", "bottom", "left"]
+        directions = [(-1,0), (0,1), (1,0), (0,-1)]
+        projected_blue_count = (int)(CELL_COUNT * random.randint(50, 70)/100)
+        blue_cells = [self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]]
 
-    def get_start_green(self):
+        for blue_cell in blue_cells:
+            blue_cell.color = BLUE
+
+    def get_start_greens(self):
         start_greens = []
         for row in self.cells:
             for cell in row:
@@ -76,7 +85,7 @@ class Grid:
         return start_greens
 
     def all_connected(self, blue_count):
-        found_greens = self.get_start_green()
+        found_greens = self.get_start_greens()
 
         for start_green in found_greens:
             try:
