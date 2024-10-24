@@ -198,7 +198,6 @@ class Grid:
                                 adjacent_cell[0].result[self.get_opposite_direction(direction_name)] = True
                                 adjacent_cell[0].borders[self.get_opposite_direction(direction_name)] = True
 
-
     def get_opposite_direction(self, direction):
         if direction == "top":
             return "bottom"

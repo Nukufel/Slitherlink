@@ -7,6 +7,7 @@ class Cell:
         self.row = row  # Row index
         self.col = col  # Column index
         self.number = None
+        self.show_number = True
         self.color = GREEN
 
         # Borders: Whether each border is active (True or False)
@@ -104,7 +105,8 @@ class Cell:
 
     def draw_number(self, window, x, y):
         """Draw the number in the middle of the cell."""
-        font = pygame.font.SysFont(None, 24)
-        text = font.render(str(self.number), True, BLACK)
-        text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
-        window.blit(text, text_rect)
+        if self.show_number:
+            font = pygame.font.SysFont(None, 24)
+            text = font.render(str(self.number), True, BLACK)
+            text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
+            window.blit(text, text_rect)
