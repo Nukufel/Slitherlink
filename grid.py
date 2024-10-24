@@ -5,6 +5,7 @@ import random
 
 CELL_COUNT = GRID_COLS * GRID_ROWS
 
+
 class Grid:
     def __init__(self, rows, cols):
         self.rows = rows
@@ -99,7 +100,7 @@ class Grid:
 
                 if random_cell not in blue_cells:
                     random_cell.color = BLUE
-                    if self.all_connected(len(blue_cells)+1):
+                    if self.all_connected(len(blue_cells)+1, directions):
                         failed_count = 0
                         blue_cells.append(random_cell)
                     else:
@@ -161,40 +162,17 @@ class Grid:
                     start_greens.append(cell)
         return start_greens
 
-    def all_connected(self, blue_count):
+    def all_connected(self, blue_count, directions):
         found_greens = self.get_start_greens()
 
         for start_green in found_greens:
-            try:
-                if (self.cells[start_green.row - 1][start_green.col].color is not BLUE and
-                        self.cells[start_green.row - 1][start_green.col] not in found_greens):  # check up
-                    found_greens.append(self.cells[start_green.row - 1][start_green.col])
-            except:
-                pass
-
-            try:
-                if (self.cells[start_green.row][start_green.col + 1].color is not BLUE and
-                        self.cells[start_green.row][start_green.col + 1] not in found_greens):  # check right
-                    found_greens.append(self.cells[start_green.row][start_green.col + 1])
-            except:
-                pass
-
-            try:
-                if (self.cells[start_green.row + 1][start_green.col].color is not BLUE and
-                        self.cells[start_green.row + 1][start_green.col] not in found_greens):  # check down
-                    found_greens.append(self.cells[start_green.row + 1][start_green.col])
-            except:
-                pass
-
-            try:
-                if (self.cells[start_green.row][start_green.col - 1].color is not BLUE and
-                        self.cells[start_green.row][start_green.col - 1] not in found_greens):  # check left
-                    found_greens.append(self.cells[start_green.row][start_green.col - 1])
-            except:
-                pass
+            for d_row, d_col in directions:
+                try:
+                    adj_cell = self.cells[start_green.row + d_row][start_green.col + d_col]
+                    if adj_cell.color != BLUE and adj_cell not in found_greens:
+                        found_greens.append(adj_cell)
+                except IndexError:
+                    pass
 
         max_cells = self.rows * self.cols
-
-        if max_cells - blue_count == len(found_greens):
-            return True
-        return False
+        return max_cells - blue_count == len(found_greens)
