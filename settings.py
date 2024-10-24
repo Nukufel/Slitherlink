@@ -14,4 +14,4 @@ PADDING = 10  # Add some padding around the grid
 
 FPS = 60
 
-WIDTH, HEIGHT = 800, 800  # Larger window
+WIDTH, HEIGHT = 600, 600  # Larger window
