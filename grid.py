@@ -69,9 +69,9 @@ class Grid:
 
     def make_puzzle(self):
         # directions = ["top", "right", "bottom", "left"]
-        directions = [(-1,0), (0,1), (1,0), (0,-1)]
-        projected_blue_count = (int)(CELL_COUNT * random.randint(56, 60)/100)
-        print(projected_blue_count)
+        directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+
+        projected_blue_count = int(CELL_COUNT * random.randint(56, 60) / 100)
 
         first_blue = self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]
         first_blue.color = BLUE
@@ -80,15 +80,15 @@ class Grid:
         failed_count = 0
 
         # TODO more elegant way for failed_count
-        while len(blue_cells) < projected_blue_count and failed_count < 10000:
+        while len(blue_cells) < projected_blue_count and failed_count < 20000:
             random_blue = random.choice(blue_cells)
 
             adjacent_cells = self.get_adjacent_cells(random_blue, directions)
-            weights = self.weight_cell(adjacent_cells, directions)
+            weights = self.weight_cell(adjacent_cells, directions, random_blue)
             adjacent_weighted_cells = {}
 
             for i, adjacent_cell in enumerate(adjacent_cells):
-                if weights[i] > 60:
+                if weights[i] > 50:
                     adjacent_weighted_cells[adjacent_cell] = weights[i]
 
             if len(adjacent_weighted_cells) > 0:
@@ -107,19 +107,24 @@ class Grid:
             else:
                 failed_count += 1
 
+    def is_next_cell_valid(self, cell, direction):
+        if (not (cell.row == 0 and direction[0] == -1) and
+                not (cell.col == 0 and direction[1] == -1) and
+                not (cell.row == self.rows - 1 and direction[0] == 1) and
+                not (cell.col == self.cols - 1 and direction[1] == 1)):
+            return True
+        return False
+
     def get_adjacent_cells(self, base_cell, directions):
         next_cells = []
         for direction in directions:
-            if (not (base_cell.row == 0 and direction[0] == -1) and
-                    not (base_cell.col == 0 and direction[1] == -1) and
-                    not (base_cell.row == self.rows - 1 and direction[0] == 1) and
-                    not (base_cell.col == self.cols - 1 and direction[1] == 1)):
+            if self.is_next_cell_valid(base_cell, direction):
                 row = base_cell.row + direction[0]
                 col = base_cell.col + direction[1]
                 next_cells.append(self.cells[row][col])
         return next_cells
 
-    def weight_cell(self, cells, directions):
+    def weight_cell(self, cells, directions, base_cell):
         scores = []
         for cell in cells:
             score = 100
@@ -127,20 +132,26 @@ class Grid:
             for adjacent_cell in adjacent_cells:
                 if adjacent_cell.color == BLUE:
                     score -= 20
-            # TODO somehow avoid long straight lines
+            score -= self.calc_consecutive_blues(cell, base_cell) * 5
+            score += random.randint(-5, 5)
+            if score < 0:
+                score = 0
             scores.append(score)
         return scores
 
-    def check_straight_lines(self, cell, direction):
-        match direction:
-            case (-1, 0): # top
-                pass
-            case (0, 1): # left
-                pass
-            case (1, 0): # down
-                pass
-            case (0, -1):
-                pass
+    def calc_consecutive_blues(self, cell, base_cell):
+        count = 1
+        opposite_direction = (base_cell.row - cell.row, base_cell.col - cell.col)
+        next_cell = cell
+        while True:
+            if not self.is_next_cell_valid(next_cell, opposite_direction):
+                break
+            next_cell = self.cells[next_cell.row + opposite_direction[0]][next_cell.col + opposite_direction[1]]
+            if next_cell.color == BLUE:
+                count += 1
+            else:
+                break
+        return count
 
     def get_start_greens(self):
         start_greens = []
