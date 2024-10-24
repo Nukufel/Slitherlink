@@ -112,8 +112,7 @@ class Grid:
             else:
                 failed_count += 1
 
-        self.set_numbers_for_cells(directions)
-
+        self.set_numbers_and_boarders_for_cells(directions)
 
     def is_next_cell_valid(self, cell, direction):
         if (not (cell.row == 0 and direction[0] == -1) and
@@ -184,7 +183,7 @@ class Grid:
         max_cells = self.rows * self.cols
         return max_cells - blue_count == len(found_greens)
 
-    def set_numbers_for_cells(self, directions):
+    def set_numbers_and_boarders_for_cells(self, directions):
         for row in self.cells:
             for cell in row:
                 if cell.color == BLUE:
@@ -194,3 +193,18 @@ class Grid:
                         if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
                             cell.result[direction_name] = True
                             cell.borders[direction_name] = True     # TODO remove this line
+
+                            if adjacent_cell:
+                                adjacent_cell[0].result[self.get_opposite_direction(direction_name)] = True
+                                adjacent_cell[0].borders[self.get_opposite_direction(direction_name)] = True
+
+
+    def get_opposite_direction(self, direction):
+        if direction == "top":
+            return "bottom"
+        if direction == "right":
+            return "left"
+        if direction == "bottom":
+            return "top"
+        if direction == "left":
+            return "right"
