@@ -79,6 +79,7 @@ class Grid:
 
         failed_count = 0
 
+        # TODO more elegant way for failed_count
         while len(blue_cells) < projected_blue_count and failed_count < 10000:
             random_blue = random.choice(blue_cells)
 
@@ -129,6 +130,17 @@ class Grid:
             # TODO somehow avoid long straight lines
             scores.append(score)
         return scores
+
+    def check_straight_lines(self, cell, direction):
+        match direction:
+            case (-1, 0): # top
+                pass
+            case (0, 1): # left
+                pass
+            case (1, 0): # down
+                pass
+            case (0, -1):
+                pass
 
     def get_start_greens(self):
         start_greens = []
