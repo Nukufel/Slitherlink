@@ -69,8 +69,12 @@ class Grid:
                 adjacent_cell.toggle_border("left")
 
     def make_puzzle(self):
-        # directions = ["top", "right", "bottom", "left"]
-        directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        directions = {
+            "top": (-1, 0),
+            "right": (0, 1),
+            "bottom": (1, 0),
+            "left": (0, -1)
+        }
 
         projected_blue_count = int(CELL_COUNT * random.randint(56, 60) / 100)
 
@@ -108,6 +112,9 @@ class Grid:
             else:
                 failed_count += 1
 
+        self.set_numbers_for_cells(directions)
+
+
     def is_next_cell_valid(self, cell, direction):
         if (not (cell.row == 0 and direction[0] == -1) and
                 not (cell.col == 0 and direction[1] == -1) and
@@ -116,12 +123,12 @@ class Grid:
             return True
         return False
 
-    def get_adjacent_cells(self, base_cell, directions):
+    def get_adjacent_cells(self, cell, directions):
         next_cells = []
-        for direction in directions:
-            if self.is_next_cell_valid(base_cell, direction):
-                row = base_cell.row + direction[0]
-                col = base_cell.col + direction[1]
+        for direction in directions.values():
+            if self.is_next_cell_valid(cell, direction):
+                row = cell.row + direction[0]
+                col = cell.col + direction[1]
                 next_cells.append(self.cells[row][col])
         return next_cells
 
@@ -166,7 +173,7 @@ class Grid:
         found_greens = self.get_start_greens()
 
         for start_green in found_greens:
-            for d_row, d_col in directions:
+            for d_row, d_col in directions.values():
                 try:
                     adj_cell = self.cells[start_green.row + d_row][start_green.col + d_col]
                     if adj_cell.color != BLUE and adj_cell not in found_greens:
@@ -176,3 +183,14 @@ class Grid:
 
         max_cells = self.rows * self.cols
         return max_cells - blue_count == len(found_greens)
+
+    def set_numbers_for_cells(self, directions):
+        for row in self.cells:
+            for cell in row:
+                if cell.color == BLUE:
+                    for direction_name, direction in directions.items():
+                        one_direction = {direction_name: direction}
+                        adjacent_cell = self.get_adjacent_cells(cell, one_direction)
+                        if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
+                            cell.result[direction_name] = True
+                            cell.borders[direction_name] = True     # TODO remove this line

@@ -23,6 +23,7 @@ class Cell:
             'left': None
         }
 
+
     def is_satisfied(self):
         true_boarders = [key for key in self.borders if self.borders[key] is True]
         true_results = [key for key in self.result if self.result[key] is True]
