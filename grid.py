@@ -76,7 +76,7 @@ class Grid:
             "left": (0, -1)
         }
 
-        projected_blue_count = int(CELL_COUNT * random.randint(56, 60) / 100)
+        projected_blue_count = int(CELL_COUNT * random.randint(58, 60) / 100)
 
         first_blue = self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]
         first_blue.color = BLUE
@@ -138,7 +138,7 @@ class Grid:
             adjacent_cells = self.get_adjacent_cells(cell, directions)
             for adjacent_cell in adjacent_cells:
                 if adjacent_cell.color == BLUE:
-                    score -= 20
+                    score -= 22
             score -= self.calc_consecutive_blues(cell, base_cell) * 5
             score += random.randint(-5, 5)
             if score < 0:

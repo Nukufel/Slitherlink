@@ -100,7 +100,7 @@ class Cell:
             pygame.draw.line(window, RED, start1, end1, 4)
             pygame.draw.line(window, RED, start2, end2, 4)
 
-        pygame.draw.line(window, self.color, (x, y), (x + CELL_SIZE, y + CELL_SIZE), 4)
+        #pygame.draw.line(window, self.color, (x, y), (x + CELL_SIZE, y + CELL_SIZE), 4)
         self.draw_number(window, x, y)
 
     def draw_number(self, window, x, y):

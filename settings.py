@@ -6,12 +6,12 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 
 # Cell and Grid size
-CELL_SIZE = 50
-GRID_ROWS, GRID_COLS = 10, 10
+CELL_SIZE = 30
+GRID_ROWS, GRID_COLS = 20, 20
 
 # Padding around the grid to prevent border cutoff
 PADDING = 10  # Add some padding around the grid
 
 FPS = 60
 
-WIDTH, HEIGHT = 600, 600  # Larger window
+WIDTH, HEIGHT = 700, 700  # Larger window
