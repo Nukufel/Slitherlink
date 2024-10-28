@@ -33,6 +33,8 @@ def game_loop():
     grid_y = (HEIGHT - GRID_HEIGHT) // 2
 
     while running:
+        if grid.is_solved():
+            print("Puzzle solved!")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -43,8 +45,8 @@ def game_loop():
                 relative_mouse_pos = (mouse_pos[0] - grid_x - PADDING, mouse_pos[1] - grid_y - PADDING)
 
                 # Only handle clicks inside the grid surface
-                if 0 <= relative_mouse_pos[0] <= GRID_WIDTH - PADDING * 2 and 0 <= relative_mouse_pos[
-                    1] <= GRID_HEIGHT - PADDING * 2:
+                if (0 <= relative_mouse_pos[0] <= GRID_WIDTH - PADDING * 2 and
+                        0 <= relative_mouse_pos[1] <= GRID_HEIGHT - PADDING * 2):
                     grid.handle_click(relative_mouse_pos)
 
         # Fill the main window with a white background

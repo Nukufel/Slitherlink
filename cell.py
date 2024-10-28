@@ -110,3 +110,5 @@ class Cell:
             text = font.render(str(self.number), True, BLACK)
             text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
             window.blit(text, text_rect)
+
+
