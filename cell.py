@@ -111,4 +111,7 @@ class Cell:
             text_rect = text.get_rect(center=(x + CELL_SIZE / 2, y + CELL_SIZE / 2))
             window.blit(text, text_rect)
 
+    def clear_boarders(self):
+        for key in self.borders.keys():
+            self.borders[key] = None
 
