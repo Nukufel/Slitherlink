@@ -19,7 +19,7 @@ GRID_WIDTH = GRID_COLS * CELL_SIZE + PADDING * 2
 GRID_HEIGHT = GRID_ROWS * CELL_SIZE + PADDING * 2
 
 # Create a grid object
-grid = Grid(GRID_ROWS, GRID_COLS)
+grid = Grid()
 
 
 def game_loop():

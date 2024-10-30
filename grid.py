@@ -1,26 +1,15 @@
-from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS
+from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS
+from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
+from solver import Solver
 import random
 
 
 CELL_COUNT = GRID_COLS * GRID_ROWS
 
 
-def get_opposite_direction(direction):
-    if direction == "top":
-        return "bottom"
-    if direction == "right":
-        return "left"
-    if direction == "bottom":
-        return "top"
-    if direction == "left":
-        return "right"
-
-
 class Grid:
-    def __init__(self, rows, cols):
-        self.rows = rows
-        self.cols = cols
+    def __init__(self):
         self.cells = []
 
         # Create the grid
@@ -28,9 +17,9 @@ class Grid:
 
     def create_grid(self):
         """Create a grid with cells."""
-        for row in range(self.rows):
+        for row in range(GRID_ROWS):
             cell_row = []
-            for col in range(self.cols):
+            for col in range(GRID_COLS):
                 cell = Cell(row, col)
                 cell_row.append(cell)
             self.cells.append(cell_row)
@@ -48,7 +37,7 @@ class Grid:
         x, y = pos
         col, row = x // CELL_SIZE, y // CELL_SIZE
 
-        if row < self.rows and col < self.cols:
+        if row < GRID_ROWS and col < GRID_COLS:
             cell = self.cells[row][col]
             cell_x, cell_y = col * CELL_SIZE, row * CELL_SIZE
 
@@ -67,29 +56,25 @@ class Grid:
             cell.toggle_border(nearest_border)
 
             if nearest_border == "top" and row != 0:
+                self.set_boarder(cell, nearest_border,)
                 adjacent_cell = self.cells[row - 1][col]
                 adjacent_cell.toggle_border("bottom")
-            if nearest_border == "bottom" and row != self.rows - 1:
+            if nearest_border == "bottom" and row != GRID_ROWS - 1:
                 adjacent_cell = self.cells[row + 1][col]
                 adjacent_cell.toggle_border("top")
             if nearest_border == "left" and col != 0:
                 adjacent_cell = self.cells[row][col - 1]
                 adjacent_cell.toggle_border("right")
-            if nearest_border == "right" and col != self.cols - 1:
+            if nearest_border == "right" and col != GRID_COLS - 1:
                 adjacent_cell = self.cells[row][col + 1]
                 adjacent_cell.toggle_border("left")
 
     def make_puzzle(self):
-        directions = {
-            "top": (-1, 0),
-            "right": (0, 1),
-            "bottom": (1, 0),
-            "left": (0, -1)
-        }
+        directions = DIRECTIONS
 
         projected_blue_count = int(CELL_COUNT * random.randint(58, 60) / 100)
 
-        first_blue = self.cells[random.randint(0, self.rows-1)][random.randint(0, self.cols-1)]
+        first_blue = self.cells[random.randint(0, GRID_ROWS-1)][random.randint(0, GRID_COLS-1)]
         first_blue.color = BLUE
         blue_cells = [first_blue]
 
@@ -124,19 +109,14 @@ class Grid:
                 failed_count += 1
 
         self.set_numbers_and_boarders_for_cells(directions)
-
-    def is_next_cell_valid(self, cell, direction):
-        if (not (cell.row == 0 and direction[0] == -1) and
-                not (cell.col == 0 and direction[1] == -1) and
-                not (cell.row == self.rows - 1 and direction[0] == 1) and
-                not (cell.col == self.cols - 1 and direction[1] == 1)):
-            return True
-        return False
+        solver = Solver(self)
+        solver_start_cell = [self.cells[0][0]]
+        print(solver.solve(solver_start_cell))
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
         for direction in directions.values():
-            if self.is_next_cell_valid(cell, direction):
+            if is_next_cell_valid(cell, direction):
                 row = cell.row + direction[0]
                 col = cell.col + direction[1]
                 next_cells.append(self.cells[row][col])
@@ -162,7 +142,7 @@ class Grid:
         opposite_direction = (base_cell.row - cell.row, base_cell.col - cell.col)
         next_cell = cell
         while True:
-            if not self.is_next_cell_valid(next_cell, opposite_direction):
+            if not is_next_cell_valid(next_cell, opposite_direction):
                 break
             next_cell = self.cells[next_cell.row + opposite_direction[0]][next_cell.col + opposite_direction[1]]
             if next_cell.color == BLUE:
@@ -175,7 +155,7 @@ class Grid:
         start_greens = []
         for row in self.cells:
             for cell in row:
-                if (cell.row in [0, self.rows - 1] or cell.col in [0, self.cols - 1]) and cell.color == GREEN:
+                if (cell.row in [0, GRID_ROWS - 1] or cell.col in [0, GRID_COLS - 1]) and cell.color == GREEN:
                     start_greens.append(cell)
         return start_greens
 
@@ -191,8 +171,7 @@ class Grid:
                 except IndexError:
                     pass
 
-        max_cells = self.rows * self.cols
-        return max_cells - blue_count == len(found_greens)
+        return CELL_COUNT - blue_count == len(found_greens)
 
     def set_numbers_and_boarders_for_cells(self, directions):
         for row in self.cells:
@@ -202,12 +181,8 @@ class Grid:
                         one_direction = {direction_name: direction}
                         adjacent_cell = self.get_adjacent_cells(cell, one_direction)
                         if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
-                            cell.result[direction_name] = True
-                            cell.borders[direction_name] = True     # TODO remove this line
-
-                            if adjacent_cell:
-                                adjacent_cell[0].result[get_opposite_direction(direction_name)] = True
-                                adjacent_cell[0].borders[get_opposite_direction(direction_name)] = True
+                            self.set_boarder_results(cell, direction_name, True)
+                cell.calc_number()
 
     def is_solved(self):
         for row in self.cells:
@@ -215,6 +190,22 @@ class Grid:
                 if not cell.is_satisfied():
                     return False
         return True
+
+    def set_boarder(self, cell, pos, value=0):
+        cell.toggle_border(pos, value)
+        opposite_border = get_opposite_direction(pos)
+        opposite_direction = {opposite_border: DIRECTIONS[opposite_border]}
+        adjacent_cell = self.get_adjacent_cells(cell, opposite_direction)[0]
+        if adjacent_cell:
+            adjacent_cell[0].toggle_border(opposite_border, value)
+
+    def set_boarder_results(self, cell, pos, value):
+        cell.result[pos] = value
+        opposite_border = get_opposite_direction(pos)
+        opposite_direction = {opposite_border: DIRECTIONS[opposite_border]}
+        adjacent_cell = self.get_adjacent_cells(cell, opposite_direction)
+        if adjacent_cell:
+            adjacent_cell[0].result[opposite_border] = value
 
     
 

@@ -7,7 +7,7 @@ GREEN = (0, 255, 0)
 
 # Cell and Grid size
 CELL_SIZE = 30
-GRID_ROWS, GRID_COLS = 20, 20
+GRID_ROWS, GRID_COLS = 5, 5
 
 # Padding around the grid to prevent border cutoff
 PADDING = 10  # Add some padding around the grid
@@ -15,3 +15,10 @@ PADDING = 10  # Add some padding around the grid
 FPS = 60
 
 WIDTH, HEIGHT = 700, 700  # Larger window
+
+DIRECTIONS = {
+    "top": (-1, 0),
+    "right": (0, 1),
+    "bottom": (1, 0),
+    "left": (0, -1)
+}

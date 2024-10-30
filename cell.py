@@ -30,7 +30,7 @@ class Cell:
         for value in self.result.values():
             if value:
                 count += 1
-        return count
+        self.number = count
 
     def is_satisfied(self):
         true_boarders = [key for key in self.borders if self.borders[key] is True]
@@ -39,18 +39,20 @@ class Cell:
             return True
         return False
 
-    def toggle_border(self, border):
+    def toggle_border(self, border, value=0):
         """Toggle a specific border (top, right, bottom, left)."""
-        if border in self.borders:
-            if self.borders[border] is None:
-                self.borders[border] = True
-            elif self.borders[border] is True:
-                self.borders[border] = False
-            elif self.borders[border] is False:
-                self.borders[border] = None
+        if value == 0:
+            if border in self.borders:
+                if self.borders[border] is None:
+                    self.borders[border] = True
+                elif self.borders[border] is True:
+                    self.borders[border] = False
+                elif self.borders[border] is False:
+                    self.borders[border] = None
+        else:
+            self.borders[border] = value
 
     def draw(self, window, offset_x=0, offset_y=0):
-        self.number = self.calc_number()
         """Draw the borders (active borders with thick lines) for the cell."""
         x = self.col * CELL_SIZE + offset_x
         y = self.row * CELL_SIZE + offset_y

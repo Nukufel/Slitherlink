@@ -1,4 +1,4 @@
-
+from settings import DIRECTIONS
 VALID_COMBINATIONS = {
     0: [],
     1: [["top"], ["bottom"], ["left"], ["right"]],
@@ -11,21 +11,18 @@ class Solver:
     def __init__(self, grid):
         self.grid = grid
 
-    def remove_number(self):
-        pass
+    def solve(self, cells):
+        for cell in cells:
+            cell_number = cell.number
+            combinations = VALID_COMBINATIONS[cell_number]
+            for combination in combinations:
+                self.set_boarders_and_crosses(combination, cell)
+                if self.is_valid_combination(cell):
+                    return self.solve(self.grid.get_adjacent_cells(cell, DIRECTIONS))
+                return False
 
-    def solve(self):
-        for row in self.grid.cells:
-            for cell in row:
-                combinations = VALID_COMBINATIONS[cell.number]
-                for combination in combinations:
-                    self.set_boarders_and_crosses(combination, cell)
-                    if not self.check_valid_cell(cell):
-                        #do some backtracking
-                        pass
-
-    def check_valid_cell(self, cell):
-        for key, value in cell.boarders.items():
+    def is_valid_combination(self, cell):
+        for key, value in cell.borders.items():
             if value:
                 r = cell.row
                 c = cell.col
