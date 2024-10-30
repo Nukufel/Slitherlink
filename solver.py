@@ -20,7 +20,9 @@ class Solver:
                 combinations = VALID_COMBINATIONS[cell.number]
                 for combination in combinations:
                     self.set_boarders_and_crosses(combination, cell)
-                    self.check_valid_cell(cell)
+                    if not self.check_valid_cell(cell):
+                        #do some backtracking
+                        pass
 
     def check_valid_cell(self, cell):
         for key, value in cell.boarders.items():
@@ -60,7 +62,7 @@ class Solver:
                             (r, c): ("top", "bottom")
                         }
 
-                self.has_possible_boarder(cell, positions)
+                return self.has_possible_boarder(cell, positions)
 
     def has_possible_boarder(self, cell, positions):
         for key, value in positions.items():
