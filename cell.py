@@ -32,16 +32,35 @@ class Cell:
                 count += 1
         self.number = count
 
-    def is_satisfied(self):
+    def get_empty_boarders(self):
+        return [key for key, value in self.borders.items() if value is None]
+
+    def is_correct(self):
         true_boarders = [key for key in self.borders if self.borders[key] is True]
         true_results = [key for key in self.result if self.result[key] is True]
         if true_results == true_boarders:
             return True
         return False
 
-    def toggle_border(self, border, value=0):
+    def is_full(self):
+        empty_boarders = [key for key in self.borders if self.borders[key] is None]
+        if len(empty_boarders) > 0:
+            return False
+        return True
+
+
+    def is_satisfied(self):
+        true_borders = [key for key, value in self.borders.items() if value]
+        true_result = [key for key, value in self.result.items() if value]
+        if len(true_result) == len(true_borders):
+            return True
+        return False
+        # maby to check if the amount of lies is correct
+
+
+    def toggle_border(self, border, value=None):
         """Toggle a specific border (top, right, bottom, left)."""
-        if value == 0:
+        if value is None:
             if border in self.borders:
                 if self.borders[border] is None:
                     self.borders[border] = True

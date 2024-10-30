@@ -97,8 +97,7 @@ class Grid:
         self.set_boarders_for_cells(directions)
         self.set_number_for_cells()
         solver = Solver(self)
-        solver_start_cell = [self.cells[0][0]]
-        #print(solver.solve(solver_start_cell))
+        solver.solve()
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
@@ -169,7 +168,6 @@ class Grid:
                         adjacent_cell = self.get_adjacent_cells(cell, one_direction)
                         if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
                             self.set_boarder_results(cell, direction_name, True)
-                            self.set_boarder(cell, direction_name, True)
 
     def set_number_for_cells(self):
         for row in self.cells:
@@ -179,11 +177,11 @@ class Grid:
     def is_solved(self):
         for row in self.cells:
             for cell in row:
-                if not cell.is_satisfied():
+                if not cell.is_correct():
                     return False
         return True
 
-    def set_boarder(self, cell, pos, value=0):
+    def set_boarder(self, cell, pos, value=None):
         cell.toggle_border(pos, value)
         opposite_border = get_opposite_direction(pos)
         opposite_direction = {opposite_border: DIRECTIONS[pos]}
