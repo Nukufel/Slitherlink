@@ -6,6 +6,17 @@ import random
 CELL_COUNT = GRID_COLS * GRID_ROWS
 
 
+def get_opposite_direction(direction):
+    if direction == "top":
+        return "bottom"
+    if direction == "right":
+        return "left"
+    if direction == "bottom":
+        return "top"
+    if direction == "left":
+        return "right"
+
+
 class Grid:
     def __init__(self, rows, cols):
         self.rows = rows
@@ -195,8 +206,8 @@ class Grid:
                             cell.borders[direction_name] = True     # TODO remove this line
 
                             if adjacent_cell:
-                                adjacent_cell[0].result[self.get_opposite_direction(direction_name)] = True
-                                adjacent_cell[0].borders[self.get_opposite_direction(direction_name)] = True
+                                adjacent_cell[0].result[get_opposite_direction(direction_name)] = True
+                                adjacent_cell[0].borders[get_opposite_direction(direction_name)] = True
 
     def is_solved(self):
         for row in self.cells:
@@ -205,12 +216,5 @@ class Grid:
                     return False
         return True
 
-    def get_opposite_direction(self, direction):
-        if direction == "top":
-            return "bottom"
-        if direction == "right":
-            return "left"
-        if direction == "bottom":
-            return "top"
-        if direction == "left":
-            return "right"
+    
+
