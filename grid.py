@@ -53,21 +53,7 @@ class Grid:
             nearest_border = min(distances, key=distances.get)
 
             # Toggle the nearest border
-            cell.toggle_border(nearest_border)
-
-            if nearest_border == "top" and row != 0:
-                self.set_boarder(cell, nearest_border,)
-                adjacent_cell = self.cells[row - 1][col]
-                adjacent_cell.toggle_border("bottom")
-            if nearest_border == "bottom" and row != GRID_ROWS - 1:
-                adjacent_cell = self.cells[row + 1][col]
-                adjacent_cell.toggle_border("top")
-            if nearest_border == "left" and col != 0:
-                adjacent_cell = self.cells[row][col - 1]
-                adjacent_cell.toggle_border("right")
-            if nearest_border == "right" and col != GRID_COLS - 1:
-                adjacent_cell = self.cells[row][col + 1]
-                adjacent_cell.toggle_border("left")
+            self.set_boarder(cell, nearest_border)
 
     def make_puzzle(self):
         directions = DIRECTIONS
@@ -182,6 +168,7 @@ class Grid:
                         adjacent_cell = self.get_adjacent_cells(cell, one_direction)
                         if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
                             self.set_boarder_results(cell, direction_name, True)
+                            self.set_boarder(cell, direction_name, True)
                 cell.calc_number()
 
     def is_solved(self):
@@ -194,15 +181,16 @@ class Grid:
     def set_boarder(self, cell, pos, value=0):
         cell.toggle_border(pos, value)
         opposite_border = get_opposite_direction(pos)
-        opposite_direction = {opposite_border: DIRECTIONS[opposite_border]}
-        adjacent_cell = self.get_adjacent_cells(cell, opposite_direction)[0]
+        opposite_direction = {opposite_border: DIRECTIONS[pos]}
+        print(pos, opposite_border, opposite_direction)
+        adjacent_cell = self.get_adjacent_cells(cell, opposite_direction)
         if adjacent_cell:
             adjacent_cell[0].toggle_border(opposite_border, value)
 
     def set_boarder_results(self, cell, pos, value):
         cell.result[pos] = value
         opposite_border = get_opposite_direction(pos)
-        opposite_direction = {opposite_border: DIRECTIONS[opposite_border]}
+        opposite_direction = {opposite_border: DIRECTIONS[pos]}
         adjacent_cell = self.get_adjacent_cells(cell, opposite_direction)
         if adjacent_cell:
             adjacent_cell[0].result[opposite_border] = value

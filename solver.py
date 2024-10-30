@@ -1,6 +1,9 @@
+import random
+
 from settings import DIRECTIONS
+from util import is_next_cell_valid
 VALID_COMBINATIONS = {
-    0: [],
+    0: [[]],
     1: [["top"], ["bottom"], ["left"], ["right"]],
     2: [["top", "bottom"], ["left", "right"], ["top", "right"], ["top", "left"], ["bottom", "left"], ["bottom", "right"]],
     3: [["top", "bottom", "left"], ["top", "bottom", "right"], ["top", "left", "right"], ["bottom", "left", "right"]],
@@ -15,11 +18,10 @@ class Solver:
         for cell in cells:
             cell_number = cell.number
             combinations = VALID_COMBINATIONS[cell_number]
-            for combination in combinations:
-                self.set_boarders_and_crosses(combination, cell)
-                if self.is_valid_combination(cell):
-                    return self.solve(self.grid.get_adjacent_cells(cell, DIRECTIONS))
-                return False
+            self.set_boarders_and_crosses(combinations[0], cell)
+            if self.is_valid_combination(cell):
+                print(cell.row, cell.col, "is not valid")
+
 
     def is_valid_combination(self, cell):
         for key, value in cell.borders.items():
@@ -63,19 +65,23 @@ class Solver:
 
     def has_possible_boarder(self, cell, positions):
         for key, value in positions.items():
-            if self.grid.is_next_cell_valid(cell, key):
+            if is_next_cell_valid(cell, key):
+                print("next cell is valid")
                 next_cell = self.grid.cells[key[0]][key[1]]
+                print(next_cell.row, next_cell.col)
                 for pos in value:
-                    if next_cell.boarders[pos] != False:
+                    print("pos")
+                    if next_cell.borders[pos] is True or next_cell.borders[pos] or None:
+                        print("ture")
                         return True
         return False
 
     def set_boarders_and_crosses(self, combination, cell):
         for pos in combination:
-            cell.borders[pos] = True
+            self.grid.set_boarder(cell, pos, True)
             for boarder in cell.borders:
                 if not cell.borders[boarder]:
-                    cell.borders[boarder] = False
+                    self.grid.set_boarder(cell, pos, False)
 
 
 
