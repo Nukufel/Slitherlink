@@ -94,10 +94,11 @@ class Grid:
             else:
                 failed_count += 1
 
-        self.set_numbers_and_boarders_for_cells(directions)
+        self.set_boarders_for_cells(directions)
+        self.set_number_for_cells()
         solver = Solver(self)
         solver_start_cell = [self.cells[0][0]]
-        print(solver.solve(solver_start_cell))
+        #print(solver.solve(solver_start_cell))
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
@@ -159,7 +160,7 @@ class Grid:
 
         return CELL_COUNT - blue_count == len(found_greens)
 
-    def set_numbers_and_boarders_for_cells(self, directions):
+    def set_boarders_for_cells(self, directions):
         for row in self.cells:
             for cell in row:
                 if cell.color == BLUE:
@@ -169,6 +170,10 @@ class Grid:
                         if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
                             self.set_boarder_results(cell, direction_name, True)
                             self.set_boarder(cell, direction_name, True)
+
+    def set_number_for_cells(self):
+        for row in self.cells:
+            for cell in row:
                 cell.calc_number()
 
     def is_solved(self):
@@ -182,7 +187,6 @@ class Grid:
         cell.toggle_border(pos, value)
         opposite_border = get_opposite_direction(pos)
         opposite_direction = {opposite_border: DIRECTIONS[pos]}
-        print(pos, opposite_border, opposite_direction)
         adjacent_cell = self.get_adjacent_cells(cell, opposite_direction)
         if adjacent_cell:
             adjacent_cell[0].toggle_border(opposite_border, value)
