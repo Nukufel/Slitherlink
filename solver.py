@@ -17,8 +17,10 @@ class Solver:
             for cell in row:
                 for pos in cell.get_empty_boarders():
                     print(cell.row, cell.col)
-                    if self.is_valid_border(cell, pos):
-                        self.grid.set_boarder(cell, pos, True)
+                    if not cell.is_satisfied():
+                        if self.is_valid_border(cell, pos):
+                            self.grid.set_boarder(cell, pos, True)
+
 
     def set_crosses_for_0(self):
         for row in self.grid.cells:
@@ -69,7 +71,8 @@ class Solver:
                 next_cell = self.grid.cells[cell.row + pos[0]][cell.col + pos[1]]
                 for border in borders:
                     if next_cell.borders[border] is True or next_cell.borders[border] is None:
-                        boarder_cntr += 1
+                        if not next_cell.is_satisfied():
+                            boarder_cntr += 1
         if boarder_cntr >= 4:
             return True
         return False
