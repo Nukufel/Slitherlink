@@ -1,4 +1,4 @@
-from settings import GRID_ROWS, GRID_COLS
+from settings import GRID_ROWS, GRID_COLS, GREEN, BLUE
 
 
 def is_next_cell_valid(cell, direction):
@@ -19,3 +19,9 @@ def get_opposite_direction(direction):
         return "top"
     if direction == "left":
         return "right"
+
+
+def switch_color(color):
+    if color == GREEN:
+        return BLUE
+    return GREEN
