@@ -1,6 +1,4 @@
-import random
-
-from settings import DIRECTIONS, GRID_ROWS, GRID_COLS
+from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN
 from util import is_next_cell_valid
 
 MAX_CELLS = GRID_ROWS * GRID_COLS
@@ -9,73 +7,79 @@ MAX_CELLS = GRID_ROWS * GRID_COLS
 class Solver:
     def __init__(self, grid):
         self.grid = grid
-        self.stack = []
+        self.clear_colors()
+        self.scout_inside_patterns()
+        self.scout_outside_patterns()
+
+
 
     def solve(self):
-        self.set_crosses_for_0()
-        for row in self.grid.cells:
-            for cell in row:
-                for pos in cell.get_empty_boarders():
-                    print(cell.row, cell.col)
-                    if not cell.is_satisfied():
-                        if self.is_valid_border(cell, pos):
-                            self.grid.set_boarder(cell, pos, True)
-
-
-    def set_crosses_for_0(self):
-        for row in self.grid.cells:
-            for cell in row:
-                if cell.number == 0:
-                    for direction in DIRECTIONS.keys():
-                        self.grid.set_boarder(cell, direction, False)
-
-    def is_valid_border(self, cell, pos):
-            positions = None
-            match pos:
-                case "top":
-                    positions = {
-                        (- 1, 0): ("left", "right"),
-                        (0, - 1): ("top", "right"),
-                        (0, 1): ("top", "left"),
-                        (0, 0): ("right", "left")
-                    }
-                case "left":
-                    positions = {
-                        (- 1, 0): ("left", "bottom"),
-                        (0,- 1): ("top", "bottom"),
-                        (1, 0): ("top", "left"),
-                        (0, 0): ("top", "bottom")
-                    }
-
-                case "bottom":
-                    positions = {
-                        (0, 0): ("left", "right"),
-                        (0, - 1): ("right", "bottom"),
-                        (0, 1): ("bottom", "left"),
-                        (- 1, 0): ("left", "right")
-                    }
-                case "right":
-                    positions = {
-                        (- 1, 0): ("right", "bottom"),
-                        (0, 1): ("top", "bottom"),
-                        (1, 0): ("top", "right"),
-                        (0, 1): ("top", "bottom")
-                    }
-
-            return self.has_possible_border(cell, positions)
-
-    def has_possible_border(self, cell, positions):
-        boarder_cntr = 0
-        for pos, borders in positions.items():
-            if is_next_cell_valid(cell, pos):
-                next_cell = self.grid.cells[cell.row + pos[0]][cell.col + pos[1]]
-                for border in borders:
-                    if next_cell.borders[border] is True or next_cell.borders[border] is None:
-                        if not next_cell.is_satisfied():
-                            boarder_cntr += 1
-        if boarder_cntr >= 4:
+        cell = self.is_full_grid()
+        if not cell:
             return True
+        else:
+            for color in [GREEN, BLUE]:
+                if self.has_possible_amount_of_neighbours(cell, color):
+                    cell.color = color
+                    if self.solve():
+                        return True
+                    cell.color = None
+            return False
+
+    def clear_colors(self):
+        for row in self.grid.cells:
+            for cell in row:
+                cell.color = None
+
+    def scout_outside_patterns(self):
+        pattern_corner_1 = [(0,0),(0,GRID_COLS-1),(GRID_ROWS-1,0),(GRID_ROWS-1,GRID_COLS-1)]
+        for row in self.grid.cells:
+                for cell in row:
+                    if cell.number == 0:
+                        if (cell.row == 0 or cell.row == GRID_ROWS-1) and (cell.col == 0 or cell.col == GRID_COLS-1):
+                            cell.color = GREEN
+                    if cell.number == 1:
+                        pattern = (cell.row, cell.col)
+                        if pattern in pattern_corner_1:
+                            cell.color = GREEN
+
+    def scout_inside_patterns(self):
+        pattern_corner_3 = [(0,0),(0,GRID_COLS-1),(GRID_ROWS-1,0),(GRID_ROWS-1,GRID_COLS-1)]
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.number == 3:
+                    pattern = (cell.row, cell.col)
+                    if pattern in pattern_corner_3:
+                        cell.color = BLUE
+
+    def has_possible_amount_of_neighbours(self, cell, color):
+        blue_count = 0
+        green_count = 0
+        for key, value in DIRECTIONS.items():
+            one_direction = {key: value}
+            adjacent_cell = self.grid.get_adjacent_cells(cell, one_direction)
+            if adjacent_cell:
+                if adjacent_cell[0].color == BLUE:
+                    blue_count += 1
+                elif adjacent_cell[0].color == GREEN:
+                    green_count += 1
+            else:
+                green_count += 1
+
+        if color == GREEN:
+            if blue_count <= cell.number and green_count <= (4 - cell.number):
+                return True
+        elif color == BLUE:
+            if blue_count <= (4 - cell.number) and green_count <= cell.number:
+                return True
         return False
+
+    def is_full_grid(self):
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.color is None:
+                    return cell
+        return None
 
 
 
