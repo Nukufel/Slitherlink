@@ -128,9 +128,20 @@ class Solver:
             for cell in row:
                 if cell.number == 0 and self.is_border_cell(cell):
                     self.set_colors_and_append(cell, GREEN, cell_list)
+                    adjacent_cell = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+
+                    for adj_cell in adjacent_cell:
+                        self.set_colors_and_append(adj_cell, GREEN, cell_list)
+
                 if cell.number == 1 and self.is_corner(cell):
-                    self.set_colors_and_append(cell, GREEN, cell_list)
+                    self.get_row_of_1_from_corner(cell, cell_list)
         return cell_list
+
+    def get_row_of_1_from_corner(self, cell, my_list):
+        adj_cell = self.has_specific_adjacent_cell(cell, 1)
+        if adj_cell and self.is_border_cell(adj_cell) and adj_cell not in my_list:
+            self.set_colors_and_append(adj_cell, GREEN, my_list)
+            self.get_row_of_1_from_corner(adj_cell, my_list)
 
     def scout_inside_patterns(self):
         cell_list = []
@@ -159,8 +170,19 @@ class Solver:
                         for adj_cell in adj_cells:
                             self.set_colors_and_append(adj_cell, BLUE, cell_list)
 
-                    #implerment more patterns 1-2
+                    for adj_cell in adj_cells:
+                        if adj_cell.number == 1:
+                            self.set_colors_and_append(cell, BLUE, cell_list)
+                            self.set_colors_and_append(adj_cell, BLUE, cell_list)
+                            for adj_adj_cell in self.grid.get_adjacent_cells(adj_cell, DIRECTIONS):
+                                if self.is_border_cell(adj_adj_cell):
+                                    self.set_colors_and_append(adj_adj_cell, BLUE, cell_list)
 
+                if cell.number == 1 and self.is_corner(cell):
+                    adj_cell = self.has_specific_adjacent_cell(cell, 3)
+                    if adj_cell:
+                        self.set_colors_and_append(cell, GREEN, cell_list)
+                        self.set_colors_and_append(adj_cell, BLUE, cell_list)
         return cell_list
 
     def scout_pattern(self, cell, color):
