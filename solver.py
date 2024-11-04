@@ -18,7 +18,7 @@ class Solver:
         self.clear_colors()
         self.cell_list.extend(self.scout_inside_patterns())
         self.cell_list.extend(self.scout_outside_patterns())
-        #self.search_patterns()
+        self.search_patterns()
 
     def clear_colors(self):
         for row in self.grid.cells:
@@ -187,42 +187,31 @@ class Solver:
 
     def scout_pattern(self, cell, color):
         new_list = []
+
         for adjacent_cell in self.grid.get_adjacent_cells(cell, DIRECTIONS):
-            cords = (cell.row, cell.col)
-            cell_num = cell.number
-            adj_num = adjacent_cell.number
-            if cell_num == 0:
-                adjacent_cell.color = cell.color
-                self.append(new_list, adjacent_cell)
-            if cords in CORNERS and cell_num == 1 and adj_num == 3:
-                adjacent_cell.color = switch_color(color)
-                self.append(new_list, adjacent_cell)
-            if cell_num == 3 and adj_num == 3:
-                adjacent_cell.color = switch_color(color)
-                self.append(new_list, adjacent_cell)
-            if cell_num == 1 and adj_num == 1:
-                if self.is_border_cell(cell):
+            if cell.color is not None or adjacent_cell.color is not None:
+                cell_num = cell.number
+                adj_num = adjacent_cell.number
+
+                if cell_num == 0:
+                    adjacent_cell.color = cell.color
+                    self.append(new_list, adjacent_cell)
+
+                if adj_num == 0:
                     adjacent_cell.color = color
                     self.append(new_list, adjacent_cell)
-            if adj_num == 0:
-                adjacent_cell.color = color
-                self.append(new_list, adjacent_cell)
-            if adj_num == 3:
-                direction = (adjacent_cell.row - cell.row, adjacent_cell.col - cell.col)
-                one_direction = {"none": direction}
-                adj_adj_cell = self.grid.get_adjacent_cells(adjacent_cell, one_direction)
-                if adj_adj_cell and adj_adj_cell[0].number == 3:
+
+                if self.is_corner(cell) and cell_num == 1 and adj_num == 3:
                     adjacent_cell.color = switch_color(color)
                     self.append(new_list, adjacent_cell)
-                    adj_adj_cell[0].color = color
-                    self.append(new_list, adj_adj_cell[0])
-            if cell_num == 3 and adj_num == 3:
-                direction = (adjacent_cell.row - cell.row, adjacent_cell.col - cell.col)
-                one_direction = {"none": direction}
-                adj_adj_cell = self.grid.get_adjacent_cells(adjacent_cell, one_direction)
-                if adj_adj_cell:
-                    adj_adj_cell[0].color = color
-                    self.append(new_list, adj_adj_cell[0])
+
+                if cell_num == 3 and adj_num == 3:
+                    adjacent_cell.color = switch_color(color)
+                    self.append(new_list, adjacent_cell)
+
+                if cell_num == 1 and adj_num == 1 and self.is_border_cell(cell):
+                    adjacent_cell.color = color
+                    self.append(new_list, adjacent_cell)
         return new_list
 
 
