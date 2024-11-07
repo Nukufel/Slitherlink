@@ -25,26 +25,77 @@ class Solver:
             for cell in row:
                 cell.color = None
 
-    def append(self, new_list, cell):
-        if cell not in new_list and cell not in self.cell_list:
-            new_list.append(cell)
+    # rewrite
+    def is_possible_solution(self):
+        for cell in self.cell_list:
+            if cell.number:
+                adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                green_count = 4 - len(adj_cells)
+                blue_count = 0
+                for adj_cell in adj_cells:
+                    if adj_cell.color == GREEN:
+                        green_count += 1
+                    elif adj_cell.color == BLUE:
+                        blue_count += 1
+                if not green_count <= cell.number or not blue_count <= cell.number:
+                    return False
+        if not self.can_blue_be_connected():
+            return False
+        return True
+
+    def is_blue_connected(self):
+        start_blue = None
+        all_blues = []
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.color == BLUE and not start_blue:
+                    start_blue = cell
+                if cell.color == BLUE:
+                    all_blues.append(cell)
+
+        connected_blue = self.get_all_connected_blue([start_blue])
+        if len(connected_blue) == len(all_blues):
+            return True
+
+    def get_all_connected_blue(self, blue_cells):
+        connected_blue = []
+        for blue_cell in blue_cells:
+            adj_cells = self.grid.get_adjacent_cells(blue_cell, DIRECTIONS)
+            for adj_cell in adj_cells:
+                if adj_cell.color == BLUE:
+                    self.append(connected_blue, adj_cell)
+                    return self.get_all_connected_blue(connected_blue)
+        return connected_blue
+
+    def can_blue_be_connected(self):
+        start_blue = None
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.color == BLUE and not start_blue:
+                    start_blue = cell
+                    break
+        possible_blue = self.get_all_connected_blue([start_blue])
+        if len(possible_blue) + len(self.get_all_greens()) == MAX_CELLS:
             return True
         return False
 
-    def is_possible_solution(self):
-        for cell in self.cell_list:
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            green_count = 4 - len(adj_cells)
-            blue_count = 0
+    def get_all_possible_blue(self, not_green_cells):
+        connected_blue = []
+        for not_green_cell in not_green_cells:
+            adj_cells = self.grid.get_adjacent_cells(not_green_cell, DIRECTIONS)
             for adj_cell in adj_cells:
-                if adj_cell.color == GREEN:
-                    green_count += 1
-                elif adj_cell.color == BLUE:
-                    blue_count += 1
-            if green_count > cell.number and blue_count > cell.number:
-                return False
-        return True
+                if adj_cell.color != GREEN:
+                    self.append(connected_blue, adj_cell)
+                    return self.get_all_connected_blue(connected_blue)
+        return connected_blue
 
+    def get_all_greens(self):
+        greens = []
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.color == GREEN:
+                    greens.append(cell)
+        return greens
     def get_next_uncolored_cell(self):
         for row in self.grid.cells:
             for cell in row:
@@ -52,6 +103,7 @@ class Solver:
                     return cell
         return None
 
+    # rewrite
     def solve(self):
         possible_cells = []
         cell = self.get_next_uncolored_cell()
@@ -60,9 +112,11 @@ class Solver:
             return True
 
         for color in [GREEN, BLUE]:
+
             self.set_colors_and_append(cell, color, self.cell_list)
             possible_cells.append(cell)
             possible_cells.extend(self.search_patterns())
+
             if self.is_possible_solution():
                 if self.solve():
                     return True
@@ -92,6 +146,12 @@ class Solver:
         if self.append(new_list, cell):
             cell.color = color
 
+    def append(self, new_list, cell):
+        if cell not in new_list and cell not in self.cell_list:
+            new_list.append(cell)
+            return True
+        return False
+
     def has_specific_adjacent_cell(self, cell, number, invert=False):
         adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
         for adj_cell in adj_cells:
@@ -120,6 +180,15 @@ class Solver:
 
     def is_border_cell(self, cell):
         return cell.row in {0, GRID_ROWS - 1} or cell.col in {0, GRID_COLS - 1}
+
+    def has_2_border_3_neighbours(self, adj_cells):
+        border_3s = []
+        for adj_cell in adj_cells:
+            if adj_cell.number == 3 and self.is_border_cell(adj_cell):
+                border_3s.append(adj_cell)
+        if len(border_3s) == 2:
+            return border_3s
+        return None
 
     def scout_outside_patterns(self):
         cell_list = []
@@ -200,15 +269,6 @@ class Solver:
                         for boarder_3 in boarder_3s:
                             self.set_colors_and_append(boarder_3, BLUE, cell_list)
         return cell_list
-
-    def has_2_border_3_neighbours(self, adj_cells):
-        border_3s = []
-        for adj_cell in adj_cells:
-            if adj_cell.number == 3 and self.is_border_cell(adj_cell):
-                border_3s.append(adj_cell)
-        if len(border_3s) == 2:
-            return border_3s
-        return None
 
     def scout_pattern(self, cell, color):
         new_list = []
