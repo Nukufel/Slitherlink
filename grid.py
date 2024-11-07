@@ -97,7 +97,7 @@ class Grid:
         self.set_boarders_for_cells(directions)
         self.set_number_for_cells()
         solver = Solver(self)
-        #solver.solve()
+        solver.solve()
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []

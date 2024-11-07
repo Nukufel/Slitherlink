@@ -31,62 +31,62 @@ class Solver:
             return True
         return False
 
-    def get_next_cell(self, last_cell=None):
-        if not last_cell:
-            return self.cell_list[0]
-        for i, cell in enumerate(self.cell_list):
-            if cell is last_cell and i+1 < len(self.cell_list):
-                return self.cell_list[i+1]
-            return None
-
-    def has_possible_amount_of_neighbours(self, cell, color):
-        blue_count = 0
-        green_count = 0
-        for key, value in DIRECTIONS.items():
-            one_direction = {key: value}
-            adjacent_cell = self.grid.get_adjacent_cells(cell, one_direction)
-            if adjacent_cell:
-                if adjacent_cell[0].color == BLUE:
-                    blue_count += 1
-                elif adjacent_cell[0].color == GREEN:
+    def is_possible_solution(self):
+        for cell in self.cell_list:
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            green_count = 4 - len(adj_cells)
+            blue_count = 0
+            for adj_cell in adj_cells:
+                if adj_cell.color == GREEN:
                     green_count += 1
-            else:
-                green_count += 1
+                elif adj_cell.color == BLUE:
+                    blue_count += 1
+            if green_count > cell.number and blue_count > cell.number:
+                return False
+        return True
 
-        if color == GREEN:
-            if blue_count <= cell.number and green_count <= (4 - cell.number):
-                return True
-        elif color == BLUE:
-            if blue_count <= (4 - cell.number) and green_count <= cell.number:
-                return True
-        return False
+    def get_next_uncolored_cell(self):
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.color is None:
+                    return cell
+        return None
 
     def solve(self):
-        cell = self.get_next_cell()
+        possible_cells = []
+        cell = self.get_next_uncolored_cell()
+
         if not cell:
             return True
 
         for color in [GREEN, BLUE]:
-            if self.has_possible_amount_of_neighbours(cell, color):
-                cell.color = color
-
+            self.set_colors_and_append(cell, color, self.cell_list)
+            possible_cells.append(cell)
+            possible_cells.extend(self.search_patterns())
+            if self.is_possible_solution():
                 if self.solve():
                     return True
 
+            for cell in possible_cells:
+                self.cell_list.remove(cell)
                 cell.color = None
-            self.cell_list.remove(cell)
+                possible_cells = []
+
         return False
 
     def search_patterns(self):
         has_pattern = True
-
+        extend_list = []
         while has_pattern:
-            extend_list = []
+            temp_list = []
             for cell in self.cell_list:
-                extend_list.extend(self.scout_pattern(cell, cell.color))
-            if not extend_list:
+                temp_list.extend(self.solve_1_and_3_by_colors())
+                temp_list.extend(self.scout_pattern(cell, cell.color))
+            if not temp_list:
                 has_pattern = False
-            self.cell_list.extend(extend_list)
+            self.cell_list.extend(temp_list)
+            extend_list.extend(temp_list)
+        return extend_list
 
     def set_colors_and_append(self, cell, color, new_list):
         if self.append(new_list, cell):
@@ -239,27 +239,29 @@ class Solver:
                     self.append(new_list, adjacent_cell)
         return new_list
 
-    def solve_by_colors(self, cell):
+    def solve_1_and_3_by_colors(self):
         cell_list = []
-        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-        green_count = 0
-        blue_count = 0
-        if cell.color is None:
-            for adj_cell in adj_cells:
-                if adj_cell.color is GREEN:
-                    green_count += 1
-                if adj_cell.color is BLUE:
-                    blue_count += 1
+        for row in self.grid.cells:
+            for cell in row:
+                adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                green_count = 4 - len(adj_cells)
+                blue_count = 0
+                if cell.color is None:
+                    for adj_cell in adj_cells:
+                        if adj_cell.color is GREEN:
+                            green_count += 1
+                        if adj_cell.color is BLUE:
+                            blue_count += 1
 
-            if cell.number == 1:
-                if green_count > 1:
-                    self.set_colors_and_append(cell, GREEN, cell_list)
-                elif blue_count > 1:
-                    self.set_colors_and_append(cell, BLUE, cell_list)
+                    if cell.number == 1:
+                        if green_count > 1:
+                            self.set_colors_and_append(cell, GREEN, cell_list)
+                        elif blue_count > 1:
+                            self.set_colors_and_append(cell, BLUE, cell_list)
 
-            if cell.number == 3:
-                if green_count > 1:
-                    self.set_colors_and_append(cell, BLUE, cell_list)
-                elif blue_count > 1:
-                    self.set_colors_and_append(cell, GREEN, cell_list)
+                    if cell.number == 3:
+                        if green_count > 1:
+                            self.set_colors_and_append(cell, BLUE, cell_list)
+                        elif blue_count > 1:
+                            self.set_colors_and_append(cell, GREEN, cell_list)
         return cell_list

@@ -48,14 +48,6 @@ class Cell:
             return False
         return True
 
-    def is_satisfied(self):
-        true_borders = [key for key, value in self.borders.items() if value]
-        true_result = [key for key, value in self.result.items() if value]
-        if len(true_result) == len(true_borders):
-            return True
-        return False
-        # maby to check if the amount of lies is correct
-
     def toggle_border(self, border, value=None):
         """Toggle a specific border (top, right, bottom, left)."""
         if value is None:
