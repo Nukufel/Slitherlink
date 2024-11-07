@@ -183,7 +183,32 @@ class Solver:
                     if adj_cell:
                         self.set_colors_and_append(cell, GREEN, cell_list)
                         self.set_colors_and_append(adj_cell, BLUE, cell_list)
+
+                if self.is_corner(cell):
+                    adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                    boarder_3s = self.has_2_border_3_neighbours(adj_cells)
+                    if boarder_3s:
+                        self.set_colors_and_append(cell, GREEN, cell_list)
+                        for boarder_3 in boarder_3s:
+                            self.set_colors_and_append(boarder_3, BLUE, cell_list)
+
+                if cell.number == 1 and self.is_border_cell(cell):
+                    adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                    boarder_3s = self.has_2_border_3_neighbours(adj_cells)
+                    if boarder_3s:
+                        self.set_colors_and_append(cell, BLUE, cell_list)
+                        for boarder_3 in boarder_3s:
+                            self.set_colors_and_append(boarder_3, BLUE, cell_list)
         return cell_list
+
+    def has_2_border_3_neighbours(self, adj_cells):
+        border_3s = []
+        for adj_cell in adj_cells:
+            if adj_cell.number == 3 and self.is_border_cell(adj_cell):
+                border_3s.append(adj_cell)
+        if len(border_3s) == 2:
+            return border_3s
+        return None
 
     def scout_pattern(self, cell, color):
         new_list = []
@@ -214,16 +239,27 @@ class Solver:
                     self.append(new_list, adjacent_cell)
         return new_list
 
+    def solve_by_colors(self, cell):
+        cell_list = []
+        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+        green_count = 0
+        blue_count = 0
+        if cell.color is None:
+            for adj_cell in adj_cells:
+                if adj_cell.color is GREEN:
+                    green_count += 1
+                if adj_cell.color is BLUE:
+                    blue_count += 1
 
+            if cell.number == 1:
+                if green_count > 1:
+                    self.set_colors_and_append(cell, GREEN, cell_list)
+                elif blue_count > 1:
+                    self.set_colors_and_append(cell, BLUE, cell_list)
 
-
-
-
-
-
-
-
-
-
-
-
+            if cell.number == 3:
+                if green_count > 1:
+                    self.set_colors_and_append(cell, BLUE, cell_list)
+                elif blue_count > 1:
+                    self.set_colors_and_append(cell, GREEN, cell_list)
+        return cell_list
