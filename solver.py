@@ -93,7 +93,7 @@ class Solver:
         return None
 
     # rewrite
-    def solve(self, max_recursion=None):
+    def solve(self):
         possible_cells = []
         cell = self.get_next_uncolored_cell()
         if not cell:
@@ -106,14 +106,10 @@ class Solver:
             for solved_cell in self.solve_by_colors():
                 self.append(self.cell_list, solved_cell)
                 self.append(possible_cells, solved_cell)
-            if max_recursion is not None:
-                if self.is_possible_solution() and max_recursion > 0:
-                    if self.solve(max_recursion-1):
-                        return True
-            else:
-                if self.is_possible_solution():
-                    if self.solve():
-                        return True
+
+            if self.is_possible_solution():
+                if self.solve():
+                    return True
 
             for possible_cell in possible_cells:
                 self.cell_list.remove(possible_cell)

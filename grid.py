@@ -5,7 +5,6 @@ from solver import Solver
 import copy
 import random
 
-
 CELL_COUNT = GRID_COLS * GRID_ROWS
 
 
@@ -61,7 +60,7 @@ class Grid:
 
         projected_blue_count = int(CELL_COUNT * random.randint(58, 60) / 100)
 
-        first_blue = self.cells[random.randint(0, GRID_ROWS-1)][random.randint(0, GRID_COLS-1)]
+        first_blue = self.cells[random.randint(0, GRID_ROWS - 1)][random.randint(0, GRID_COLS - 1)]
         first_blue.color = BLUE
         blue_cells = [first_blue]
 
@@ -87,7 +86,7 @@ class Grid:
 
                 if random_cell not in blue_cells:
                     random_cell.color = BLUE
-                    if self.all_connected(len(blue_cells)+1, directions):
+                    if self.all_connected(len(blue_cells) + 1, directions):
                         failed_count = 0
                         blue_cells.append(random_cell)
                     else:
@@ -101,32 +100,54 @@ class Grid:
         amount = GRID_COLS * GRID_ROWS / 2
 
         while True:
-            if self.remove_number(copy.deepcopy(self), amount):
+            if self.remove_number(amount):
                 break
 
-    def remove_number(self, copy_grid, amount):
+        self.remove_color()
+
+    def remove_number(self, amount):
         if amount <= 0:
             return True
 
-        rand_x = random.randint(0, GRID_ROWS-1)
-        rand_y = random.randint(0, GRID_COLS-1)
+        self.remove_color()
+
+        rand_x = random.randint(0, GRID_ROWS - 1)
+        rand_y = random.randint(0, GRID_COLS - 1)
 
         cell = self.cells[rand_x][rand_y]
-        copy_cell = copy_grid.cells[rand_x][rand_y]
-        number = copy_cell.number
+        number = cell.number
 
         cell.show_number = False
-        copy_cell.number = None
+        cell.number = None
 
-        solver = Solver(copy_grid)
-        if solver.solve(20):
-            if self.remove_number(copy_grid, amount - 1):
-                return True
+        solver = Solver(self)
 
+        if solver.solve():
+            copy_gird = copy.deepcopy(self)
+            remove_result(copy_gird)
+            set_boarders_for_cells(copy_gird, DIRECTIONS)
+            if self.compare_grids(copy_gird):
+                if self.remove_number(amount - 1):
+                    return True
+        print("revert")
         cell.show_number = True
-        copy_cell.number = number
+        cell.number = number
 
         return False
+
+    def compare_grids(self, copy_grid):
+        for row in self.cells:
+            for cell in row:
+                boarders = cell.result
+                copy_boarder = copy_grid.cells[cell.row][cell.col].result
+                print("____________")
+                print(f"{cell.row} {cell.col}")
+                print(boarders)
+                print(copy_boarder)
+                if boarders != copy_boarder:
+                    print("in")
+                    return False
+        return True
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
@@ -189,14 +210,7 @@ class Grid:
         return CELL_COUNT - blue_count == len(found_greens)
 
     def set_boarders_for_cells(self, directions):
-        for row in self.cells:
-            for cell in row:
-                if cell.color == BLUE:
-                    for direction_name, direction in directions.items():
-                        one_direction = {direction_name: direction}
-                        adjacent_cell = self.get_adjacent_cells(cell, one_direction)
-                        if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
-                            self.set_boarder_results(cell, direction_name, True)
+        set_boarders_for_cells(self, directions)
 
     def set_number_for_cells(self):
         for row in self.cells:
@@ -226,5 +240,25 @@ class Grid:
         if adjacent_cell:
             adjacent_cell[0].result[opposite_border] = value
 
-    
+    def remove_color(self):
+        for row in self.cells:
+            for cell in row:
+                cell.color = None
 
+
+def set_boarders_for_cells(grid, directions):
+    for row in grid.cells:
+        for cell in row:
+            if cell.color == BLUE:
+                for direction_name, direction in directions.items():
+                    one_direction = {direction_name: direction}
+                    adjacent_cell = grid.get_adjacent_cells(cell, one_direction)
+                    if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
+                        grid.set_boarder_results(cell, direction_name, True)
+
+
+def remove_result(grid):
+    for row in grid.cells:
+        for cell in row:
+            for key in cell.result.keys():
+                cell.result[key] = None
