@@ -16,8 +16,8 @@ class Solver:
         self.grid = grid
         self.cell_list = []
         self.clear_colors()
-        self.cell_list.extend(self.scout_inside_patterns())
-        self.cell_list.extend(self.scout_outside_patterns())
+        self.scout_inside_patterns()
+        self.scout_outside_patterns()
 
     def clear_colors(self):
         for row in self.grid.cells:
@@ -82,7 +82,7 @@ class Solver:
         for row in self.grid.cells:
             for cell in row:
                 if cell.color == GREEN:
-                    greens.append(cell)
+                    self.append(greens, cell)
         return greens
 
     def get_next_uncolored_cell(self):
@@ -96,6 +96,7 @@ class Solver:
     def solve(self):
         possible_cells = []
         cell = self.get_next_uncolored_cell()
+
         if not cell:
             return True
 
@@ -116,6 +117,18 @@ class Solver:
                 possible_cell.color = None
                 possible_cells = []
 
+        return False
+
+    def has_different_solution(self):
+        for cell in self.cell_list:
+            color = cell.color
+            cell.color = switch_color(color)
+
+            if self.is_possible_solution():
+                print("Different solution found")
+                return True
+
+            cell.color = color
         return False
 
     def set_colors_and_append(self, cell, color, new_list):
@@ -162,84 +175,78 @@ class Solver:
         border_3s = []
         for adj_cell in adj_cells:
             if adj_cell.number == 3 and self.is_border_cell(adj_cell):
-                border_3s.append(adj_cell)
+                self.append(border_3s, adj_cell)
         if len(border_3s) == 2:
             return border_3s
         return None
 
     def scout_outside_patterns(self):
-        cell_list = []
-
         for row in self.grid.cells:
             for cell in row:
                 if cell.number == 0 and self.is_border_cell(cell):
-                    self.set_colors_and_append(cell, GREEN, cell_list)
+                    self.set_colors_and_append(cell, GREEN, self.cell_list)
                     adjacent_cell = self.grid.get_adjacent_cells(cell, DIRECTIONS)
 
                     for adj_cell in adjacent_cell:
-                        self.set_colors_and_append(adj_cell, GREEN, cell_list)
+                        self.set_colors_and_append(adj_cell, GREEN, self.cell_list)
 
                 if cell.number == 1 and self.is_corner(cell):
-                    self.get_row_of_1_from_corner(cell, cell_list)
-        return cell_list
+                    self.get_row_of_1_from_corner(cell, self.cell_list)
 
     def scout_inside_patterns(self):
-        cell_list = []
-
         for row in self.grid.cells:
             for cell in row:
                 if cell.number == 3 and self.is_corner(cell):
-                    self.set_colors_and_append(cell, BLUE, cell_list)
+                    self.set_colors_and_append(cell, BLUE, self.cell_list)
 
                     adj_cell = self.has_specific_adjacent_cell(cell, 3)
                     if adj_cell:
-                        self.set_colors_and_append(adj_cell, GREEN, cell_list)
-                        self.set_colors_and_append(self.get_diagonal_cell(cell), BLUE, cell_list)
+                        self.set_colors_and_append(adj_cell, GREEN, self.cell_list)
+                        self.set_colors_and_append(self.get_diagonal_cell(cell), BLUE, self.cell_list)
 
                         adj_cell_2 = self.has_specific_adjacent_cell(cell, 3, True)
                         if adj_cell_2:
-                            self.set_colors_and_append(adj_cell_2, BLUE, cell_list)
+                            self.set_colors_and_append(adj_cell_2, BLUE, self.cell_list)
 
                 if cell.number == 2 and self.is_corner(cell):
                     diagonal_cell = self.get_diagonal_cell(cell)
                     adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
                     if diagonal_cell.number == 3:
-                        self.set_colors_and_append(diagonal_cell, GREEN, cell_list)
-                        self.set_colors_and_append(cell, BLUE, cell_list)
+                        self.set_colors_and_append(diagonal_cell, GREEN, self.cell_list)
+                        self.set_colors_and_append(cell, BLUE, self.cell_list)
 
                         for adj_cell in adj_cells:
-                            self.set_colors_and_append(adj_cell, BLUE, cell_list)
+                            self.set_colors_and_append(adj_cell, BLUE, self.cell_list)
 
                     for adj_cell in adj_cells:
                         if adj_cell.number == 1:
-                            self.set_colors_and_append(cell, BLUE, cell_list)
-                            self.set_colors_and_append(adj_cell, BLUE, cell_list)
+                            self.set_colors_and_append(cell, BLUE, self.cell_list)
+                            self.set_colors_and_append(adj_cell, BLUE, self.cell_list)
                             for adj_adj_cell in self.grid.get_adjacent_cells(adj_cell, DIRECTIONS):
                                 if self.is_border_cell(adj_adj_cell):
-                                    self.set_colors_and_append(adj_adj_cell, BLUE, cell_list)
+                                    self.set_colors_and_append(adj_adj_cell, BLUE, self.cell_list)
 
                 if cell.number == 1 and self.is_corner(cell):
                     adj_cell = self.has_specific_adjacent_cell(cell, 3)
                     if adj_cell:
-                        self.set_colors_and_append(cell, GREEN, cell_list)
-                        self.set_colors_and_append(adj_cell, BLUE, cell_list)
+                        self.set_colors_and_append(cell, GREEN, self.cell_list)
+                        self.set_colors_and_append(adj_cell, BLUE, self.cell_list)
 
                 if self.is_corner(cell):
                     adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
                     boarder_3s = self.has_2_border_3_neighbours(adj_cells)
                     if boarder_3s:
-                        self.set_colors_and_append(cell, GREEN, cell_list)
+                        self.set_colors_and_append(cell, GREEN, self.cell_list)
                         for boarder_3 in boarder_3s:
-                            self.set_colors_and_append(boarder_3, BLUE, cell_list)
+                            self.set_colors_and_append(boarder_3, BLUE, self.cell_list)
 
                 if cell.number == 1 and self.is_border_cell(cell):
                     adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
                     boarder_3s = self.has_2_border_3_neighbours(adj_cells)
                     if boarder_3s:
-                        self.set_colors_and_append(cell, BLUE, cell_list)
+                        self.set_colors_and_append(cell, BLUE, self.cell_list)
                         for boarder_3 in boarder_3s:
-                            self.set_colors_and_append(boarder_3, BLUE, cell_list)
-        return cell_list
+                            self.set_colors_and_append(boarder_3, BLUE, self.cell_list)
 
     def get_row_of_1_from_corner(self, cell, my_list):
         adj_cell = self.has_specific_adjacent_cell(cell, 1)

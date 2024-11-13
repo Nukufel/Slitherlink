@@ -126,11 +126,11 @@ class Grid:
             copy_gird = copy.deepcopy(self)
             remove_result(copy_gird)
             set_boarders_for_cells(copy_gird, DIRECTIONS)
-            if self.compare_grids(copy_gird):
+            if self.compare_grids(copy_gird) and not solver.has_different_solution():
                 if self.remove_number(amount - 1):
                     return True
-        print("revert")
-        cell.show_number = True
+
+            cell.show_number = True
         cell.number = number
 
         return False
@@ -140,12 +140,8 @@ class Grid:
             for cell in row:
                 boarders = cell.result
                 copy_boarder = copy_grid.cells[cell.row][cell.col].result
-                print("____________")
-                print(f"{cell.row} {cell.col}")
-                print(boarders)
-                print(copy_boarder)
+
                 if boarders != copy_boarder:
-                    print("in")
                     return False
         return True
 
