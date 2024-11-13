@@ -7,7 +7,7 @@ GREEN = (0, 255, 0)
 
 # Cell and Grid size
 CELL_SIZE = 30
-GRID_ROWS, GRID_COLS = 6, 6
+GRID_ROWS, GRID_COLS = 5, 5
 
 # Padding around the grid to prevent border cutoff
 PADDING = 10  # Add some padding around the grid
