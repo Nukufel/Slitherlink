@@ -126,7 +126,7 @@ class Grid:
             copy_gird = copy.deepcopy(self)
             remove_result(copy_gird)
             set_boarders_for_cells(copy_gird, DIRECTIONS)
-            if self.compare_grids(copy_gird) and not solver.has_different_solution():
+            if not solver.has_different_solution():
                 if self.remove_number(amount - 1):
                     return True
 
