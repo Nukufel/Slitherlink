@@ -2,6 +2,7 @@ from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
 from solver import Solver
+import copy
 import random
 
 
@@ -96,8 +97,41 @@ class Grid:
 
         self.set_boarders_for_cells(directions)
         self.set_number_for_cells()
-        solver = Solver(self)
-        solver.solve()
+
+        amount = GRID_COLS * GRID_ROWS / 2
+        self.remove_numbers(copy.deepcopy(self), amount)
+
+    def remove_numbers(self, copy_grid, amount):
+        if amount <= 0:
+            print("True")
+            return True
+
+        rand_x = random.randint(0, GRID_ROWS-1)
+        rand_y = random.randint(0, GRID_COLS-1)
+
+        print("cell")
+        cell = self.cells[rand_x][rand_y]
+        copy_cell = copy_grid.cells[rand_x][rand_y]
+        number = copy_cell.number
+
+        print("remove")
+        cell.show_number = False
+        copy_cell.number = None
+
+        solver = Solver(copy_grid)
+        if solver.solve():
+            print(f"removed {cell.row} {cell.col} number {cell.number}")
+            return self.remove_numbers(copy_grid, amount-1)
+
+        print("revert")
+        cell.show_number = True
+        copy_cell.number = number
+
+        print("False")
+        return False
+
+
+
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
