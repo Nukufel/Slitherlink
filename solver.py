@@ -38,17 +38,13 @@ class Solver:
                     blue_count += 1
 
             if cell.number in [1, 3] and green_count > 1 and blue_count > 1:
-                print(f"False 1 or 3: {cell.row}, {cell.col}")
                 return False
             if cell.number == 2:
                 if green_count > 2:
-                    print(f"False 2g: {cell.row}, {cell.col}")
                     return False
                 if blue_count > 2:
-                    print(f"False 2b: {blue_count} {cell.row}, {cell.col}")
                     return False
             if cell.number == 0 and green_count > 0 and blue_count > 0:
-                print(f"False 0: {cell.row}, {cell.col}")
                 return False
 
         if not self.can_blue_be_connected():
@@ -97,33 +93,32 @@ class Solver:
         return None
 
     # rewrite
-    def solve(self):
+    def solve(self, max_recursion=None):
         possible_cells = []
         cell = self.get_next_uncolored_cell()
         if not cell:
             return True
 
         for color in [GREEN, BLUE]:
-            print(f"Trying {color} on {cell.row}, {cell.col}")
             self.set_colors_and_append(cell, color, self.cell_list)
             self.append(possible_cells, cell)
 
             for solved_cell in self.solve_by_colors():
                 self.append(self.cell_list, solved_cell)
                 self.append(possible_cells, solved_cell)
-
-            if self.is_possible_solution():
-                if self.solve():
-                    return True
-
-            print("false")
+            if max_recursion is not None:
+                if self.is_possible_solution() and max_recursion > 0:
+                    if self.solve(max_recursion-1):
+                        return True
+            else:
+                if self.is_possible_solution():
+                    if self.solve():
+                        return True
 
             for possible_cell in possible_cells:
                 self.cell_list.remove(possible_cell)
                 possible_cell.color = None
                 possible_cells = []
-
-            print("reset")
 
         return False
 
