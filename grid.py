@@ -99,17 +99,18 @@ class Grid:
 
         amount = GRID_COLS * GRID_ROWS / 2
 
+        solver = Solver(self)
+        solver.solve()
+
         while True:
-            if self.remove_number(amount):
+            if self.remove_number(amount, solver):
                 break
 
         self.remove_color()
 
-    def remove_number(self, amount):
+    def remove_number(self, amount, solver):
         if amount <= 0:
             return True
-
-        self.remove_color()
 
         rand_x = random.randint(0, GRID_ROWS - 1)
         rand_y = random.randint(0, GRID_COLS - 1)
@@ -120,17 +121,11 @@ class Grid:
         cell.show_number = False
         cell.number = None
 
-        solver = Solver(self)
+        if not solver.has_different_solution():
+            if self.remove_number(amount - 1, solver):
+                return True
 
-        if solver.solve():
-            copy_gird = copy.deepcopy(self)
-            remove_result(copy_gird)
-            set_boarders_for_cells(copy_gird, DIRECTIONS)
-            if not solver.has_different_solution():
-                if self.remove_number(amount - 1):
-                    return True
-
-            cell.show_number = True
+        cell.show_number = True
         cell.number = number
 
         return False
