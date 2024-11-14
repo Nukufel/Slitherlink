@@ -1,3 +1,5 @@
+import threading
+
 from settings import WIDTH, HEIGHT, GRID_COLS, GRID_ROWS, CELL_SIZE, PADDING, FPS, WHITE
 from grid import Grid
 import pygame
@@ -21,6 +23,13 @@ GRID_HEIGHT = GRID_ROWS * CELL_SIZE + PADDING * 2
 # Create a grid object
 grid = Grid()
 
+stop_event = threading.Event()
+
+
+def create_grid_thread():
+    grid.make_puzzle()
+    stop_event.set()
+
 
 def game_loop():
     running = True
@@ -32,8 +41,11 @@ def game_loop():
     grid_x = (WIDTH - GRID_WIDTH) // 2
     grid_y = (HEIGHT - GRID_HEIGHT) // 2
 
+    grid_thread = threading.Thread(target=create_grid_thread)
+    grid_thread.start()
+
     while running:
-        if grid.is_solved():
+        if grid.is_solved() and stop_event.is_set():
             print("Puzzle solved!")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

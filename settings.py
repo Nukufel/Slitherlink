@@ -13,7 +13,7 @@ GRID_ROWS, GRID_COLS = 10, 10
 PADDING = 10  # Add some padding around the grid
 
 FPS = 60
-MAX_FAILED_COUNT = 20000
+MAX_FAILED_COUNT = 1000
 BLUE_PERCENTAGE_RANGE = (58, 60)
 
 WIDTH, HEIGHT = 700, 700  # Larger window

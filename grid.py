@@ -1,3 +1,7 @@
+import time
+
+import pygame.display
+
 from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, MAX_FAILED_COUNT, BLUE_PERCENTAGE_RANGE
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
@@ -24,7 +28,7 @@ class Grid:
                 cell_row.append(cell)
             self.cells.append(cell_row)
 
-        self.make_puzzle()
+        #self.make_puzzle()
 
     def draw(self, window, offset_x=0, offset_y=0):
         """Draw all the cells with a provided offset."""
@@ -85,6 +89,9 @@ class Grid:
 
                 if random_cell not in blue_cells:
                     random_cell.color = BLUE
+
+                    time.sleep(0.1)
+
                     if self.all_connected(len(blue_cells) + 1, directions):
                         failed_count = 0
                         blue_cells.append(random_cell)
@@ -121,6 +128,7 @@ class Grid:
         number = cell.number
 
         cell.show_number = False
+        time.sleep(0.01)
         cell.number = None
 
         if not solver.has_different_solution():

@@ -7,7 +7,7 @@ class Cell:
         self.row = row  # Row index
         self.col = col  # Column index
         self.number = None
-        self.show_number = True
+        self.show_number = False
         self.color = GREEN
 
         # Borders: Whether each border is active (True or False)
