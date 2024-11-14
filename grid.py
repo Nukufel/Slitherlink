@@ -2,7 +2,6 @@ from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
 from solver import Solver
-import copy
 import random
 
 CELL_COUNT = GRID_COLS * GRID_ROWS
@@ -24,13 +23,13 @@ class Grid:
                 cell_row.append(cell)
             self.cells.append(cell_row)
 
-        self.make_puzzle()
+        #self.make_puzzle()
 
-    def draw(self, window, offset_x=0, offset_y=0):
+    def draw_grid(self, window, offset_x=0, offset_y=0):
         """Draw all the cells with a provided offset."""
         for row in self.cells:
             for cell in row:
-                cell.draw(window, offset_x, offset_y)
+                cell.draw_cell(window, offset_x, offset_y)
 
     def handle_click(self, pos):
         """Handle clicks and toggle the nearest border of a cell."""
@@ -66,7 +65,6 @@ class Grid:
 
         failed_count = 0
 
-        # TODO more elegant way for failed_count
         while len(blue_cells) < projected_blue_count and failed_count < 20000:
             random_blue = random.choice(blue_cells)
 
@@ -129,16 +127,6 @@ class Grid:
         cell.number = number
 
         return False
-
-    def compare_grids(self, copy_grid):
-        for row in self.cells:
-            for cell in row:
-                boarders = cell.result
-                copy_boarder = copy_grid.cells[cell.row][cell.col].result
-
-                if boarders != copy_boarder:
-                    return False
-        return True
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []

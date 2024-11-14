@@ -32,7 +32,14 @@ def game_loop():
     grid_x = (WIDTH - GRID_WIDTH) // 2
     grid_y = (HEIGHT - GRID_HEIGHT) // 2
 
+    loop_cntr = 0
+
     while running:
+        if loop_cntr == 1:
+            loop_cntr = 2
+        elif loop_cntr == 0:
+            loop_cntr = 1
+
         if grid.is_solved():
             print("Puzzle solved!")
         for event in pygame.event.get():
@@ -49,6 +56,8 @@ def game_loop():
                         0 <= relative_mouse_pos[1] <= GRID_HEIGHT - PADDING * 2):
                     grid.handle_click(relative_mouse_pos)
 
+
+
         # Fill the main window with a white background
         WINDOW.fill(WHITE)
 
@@ -56,7 +65,7 @@ def game_loop():
         grid_surface.fill(WHITE)
 
         # Draw the grid onto the grid_surface, adjusted by PADDING
-        grid.draw(grid_surface, offset_x=PADDING, offset_y=PADDING)
+        grid.draw_grid(grid_surface, offset_x=PADDING, offset_y=PADDING)
 
         # Blit (draw) the grid_surface onto the main window at the calculated position
         WINDOW.blit(grid_surface, (grid_x, grid_y))
