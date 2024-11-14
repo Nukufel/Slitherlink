@@ -1,4 +1,4 @@
-from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS
+from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, MAX_FAILED_COUNT, BLUE_PERCENTAGE_RANGE
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
 from solver import Solver
@@ -55,10 +55,10 @@ class Grid:
             # Toggle the nearest border
             self.set_boarder(cell, nearest_border)
 
-    def make_puzzle(self):
+    def initialize_blue_cells(self):
         directions = DIRECTIONS
-
-        projected_blue_count = int(CELL_COUNT * random.randint(58, 60) / 100)
+        blue_percentage = random.randint(BLUE_PERCENTAGE_RANGE[0], BLUE_PERCENTAGE_RANGE[1]) / 100
+        projected_blue_count = int(CELL_COUNT * blue_percentage)
 
         first_blue = self.cells[random.randint(0, GRID_ROWS - 1)][random.randint(0, GRID_COLS - 1)]
         first_blue.color = BLUE
@@ -66,8 +66,7 @@ class Grid:
 
         failed_count = 0
 
-        # TODO more elegant way for failed_count
-        while len(blue_cells) < projected_blue_count and failed_count < 20000:
+        while len(blue_cells) < projected_blue_count and failed_count < MAX_FAILED_COUNT:
             random_blue = random.choice(blue_cells)
 
             adjacent_cells = self.get_adjacent_cells(random_blue, directions)
@@ -94,9 +93,13 @@ class Grid:
             else:
                 failed_count += 1
 
-        self.set_boarders_for_cells(directions)
+    def make_puzzle(self):
+        self.initialize_blue_cells()
+        self.set_boarders_for_cells(DIRECTIONS)
         self.set_number_for_cells()
+        self.remove_numbers()
 
+    def remove_numbers(self):
         amount = GRID_COLS * GRID_ROWS / 2
 
         solver = Solver(self)

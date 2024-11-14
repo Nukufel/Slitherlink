@@ -125,7 +125,6 @@ class Solver:
             cell.color = switch_color(color)
 
             if self.is_possible_solution():
-                print("has diffrent solution")
                 return True
 
             cell.color = color
