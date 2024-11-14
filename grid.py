@@ -23,7 +23,7 @@ class Grid:
                 cell_row.append(cell)
             self.cells.append(cell_row)
 
-        #self.make_puzzle()
+        self.make_puzzle()
 
     def draw_grid(self, window, offset_x=0, offset_y=0):
         """Draw all the cells with a provided offset."""
