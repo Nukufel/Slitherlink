@@ -48,6 +48,8 @@ def game_loop():
                 if (0 <= relative_mouse_pos[0] <= GRID_WIDTH - PADDING * 2 and
                         0 <= relative_mouse_pos[1] <= GRID_HEIGHT - PADDING * 2):
                     grid.handle_click(relative_mouse_pos)
+            elif event.type == pygame.KEYDOWN and event.key in [pygame.K_BACKSPACE, pygame.K_SPACE]:
+                grid.undo()
 
         # Fill the main window with a white background
         WINDOW.fill(WHITE)

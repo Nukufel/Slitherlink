@@ -2,7 +2,6 @@ from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, M
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
 from solver import Solver
-import copy
 import random
 
 CELL_COUNT = GRID_COLS * GRID_ROWS
@@ -11,7 +10,7 @@ CELL_COUNT = GRID_COLS * GRID_ROWS
 class Grid:
     def __init__(self):
         self.cells = []
-
+        self.action_stack = []
         # Create the grid
         self.create_grid()
 
@@ -54,6 +53,14 @@ class Grid:
 
             # Toggle the nearest border
             self.set_boarder(cell, nearest_border)
+            self.action_stack.append((cell.row, cell.col, nearest_border))
+
+    def undo(self):
+        if self.action_stack:
+            row, col, border = self.action_stack.pop()
+            cell = self.cells[row][col]
+            self.set_boarder(cell, border)
+            self.set_boarder(cell, border)
 
     def initialize_blue_cells(self):
         directions = DIRECTIONS
