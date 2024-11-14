@@ -12,7 +12,6 @@ class Grid:
     def __init__(self):
         self.cells = []
 
-        self.solver = Solver(self)
         # Create the grid
         self.create_grid()
 
@@ -102,16 +101,16 @@ class Grid:
 
     def remove_numbers(self):
         amount = GRID_COLS * GRID_ROWS / 2
-
-        self.solver.solve()
+        solver = Solver(self)
+        solver.solve()
 
         while True:
-            if self.remove_number(amount):
+            if self.remove_number(amount, solver):
                 break
 
         self.remove_color()
 
-    def remove_number(self, amount):
+    def remove_number(self, amount, solver):
         if amount <= 0:
             return True
 
@@ -124,8 +123,8 @@ class Grid:
         cell.show_number = False
         cell.number = None
 
-        if not self.solver.has_different_solution():
-            if self.remove_number(amount - 1):
+        if not solver.has_different_solution():
+            if self.remove_number(amount - 1, solver):
                 return True
 
         cell.show_number = True
