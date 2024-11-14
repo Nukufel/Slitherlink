@@ -7,7 +7,7 @@ class Cell:
         self.row = row  # Row index
         self.col = col  # Column index
         self.number = None
-        self.show_number = True
+        self.show_number = False
         self.color = GREEN
 
         # Borders: Whether each border is active (True or False)
@@ -61,7 +61,7 @@ class Cell:
         else:
             self.borders[border] = value
 
-    def draw(self, window, offset_x=0, offset_y=0):
+    def draw_cell(self, window, offset_x=0, offset_y=0):
         """Draw the borders (active borders with thick lines) for the cell."""
         x = self.col * CELL_SIZE + offset_x
         y = self.row * CELL_SIZE + offset_y
@@ -113,6 +113,7 @@ class Cell:
 
         if self.color:
             pygame.draw.line(window, self.color, (x, y), (x + CELL_SIZE, y + CELL_SIZE), 4)
+
         self.draw_number(window, x, y)
 
     def draw_number(self, window, x, y):

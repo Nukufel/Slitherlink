@@ -49,6 +49,7 @@ def game_loop():
                         0 <= relative_mouse_pos[1] <= GRID_HEIGHT - PADDING * 2):
                     grid.handle_click(relative_mouse_pos)
 
+
         # Fill the main window with a white background
         WINDOW.fill(WHITE)
 
@@ -56,7 +57,7 @@ def game_loop():
         grid_surface.fill(WHITE)
 
         # Draw the grid onto the grid_surface, adjusted by PADDING
-        grid.draw(grid_surface, offset_x=PADDING, offset_y=PADDING)
+        grid.draw_grid(grid_surface, offset_x=PADDING, offset_y=PADDING)
 
         # Blit (draw) the grid_surface onto the main window at the calculated position
         WINDOW.blit(grid_surface, (grid_x, grid_y))
