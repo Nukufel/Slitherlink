@@ -2,7 +2,6 @@ from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, M
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
 from solver import Solver
-import copy
 import random
 
 CELL_COUNT = GRID_COLS * GRID_ROWS
@@ -11,7 +10,7 @@ CELL_COUNT = GRID_COLS * GRID_ROWS
 class Grid:
     def __init__(self):
         self.cells = []
-
+        self.solver = Solver(self)
         # Create the grid
         self.create_grid()
 
@@ -102,16 +101,13 @@ class Grid:
     def remove_numbers(self):
         amount = GRID_COLS * GRID_ROWS / 2
 
-        solver = Solver(self)
-        solver.solve()
-
         while True:
-            if self.remove_number(amount, solver):
+            if self.remove_number(amount):
                 break
 
         self.remove_color()
 
-    def remove_number(self, amount, solver):
+    def remove_number(self, amount):
         if amount <= 0:
             return True
 
@@ -124,8 +120,8 @@ class Grid:
         cell.show_number = False
         cell.number = None
 
-        if not solver.has_different_solution():
-            if self.remove_number(amount - 1, solver):
+        if not self.solver.has_different_solution():
+            if self.remove_number(amount - 1):
                 return True
 
         cell.show_number = True
