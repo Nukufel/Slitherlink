@@ -15,6 +15,8 @@ class Solver:
     def __init__(self, grid):
         self.grid = grid
 
+    #cehck every combination of colors of the removed numbers. then check them and their neighbors for a second solution with flipping the colors
+
     def has_single_solution(self):
         for row in self.grid.cells:
             for cell in row:
