@@ -115,23 +115,24 @@ class Grid:
             if self.remove_number(solver, amount):
                 break
 
-    #fix recursion
     def remove_number(self, solver, amount):
         if amount <= 0:
             return True
 
-        cell = self.get_random_numbered_cell()
+        for _ in range(GRID_ROWS * GRID_COLS):
 
-        number = cell.number
-        cell.number = None
-        cell.show_number = False
+            cell = self.get_random_numbered_cell()
 
-        if solver.has_single_solution():
-            if self.remove_number(solver, amount - 1):
-                return True
+            number = cell.number
+            cell.number = None
+            cell.show_number = False
 
-        cell.number = number
-        cell.show_number = True
+            if solver.has_single_solution():
+                if self.remove_number(solver, amount - 1):
+                    return True
+
+            cell.number = number
+            cell.show_number = True
 
         return False
 
