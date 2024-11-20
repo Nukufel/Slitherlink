@@ -107,10 +107,11 @@ class Grid:
         self.remove_numbers()
 
     def remove_numbers(self):
-        amount = GRID_COLS * GRID_ROWS / 2
+        amount = int(GRID_COLS * GRID_ROWS / 2)
         solver = Solver(self)
 
         while True:
+            print("Removing numbers.............")
             if self.remove_number(amount, solver):
                 break
 
@@ -120,16 +121,15 @@ class Grid:
         if amount <= 0:
             return True
 
-        rand_x = random.randint(0, GRID_ROWS - 1)
-        rand_y = random.randint(0, GRID_COLS - 1)
-
-        cell = self.cells[rand_x][rand_y]
+        cell = self.get_random_numbered_cell()
         number = cell.number
+
+        print(f"removing row {cell.row} col {cell.col} number {cell.number}")
 
         cell.show_number = False
         cell.number = None
 
-        if not solver.has_different_solution():
+        if solver.has_single_solution():
             if self.remove_number(amount - 1, solver):
                 return True
 
@@ -137,6 +137,18 @@ class Grid:
         cell.number = number
 
         return False
+
+    def get_random_numbered_cell(self):
+        rand_x = random.randint(0, GRID_ROWS - 1)
+        rand_y = random.randint(0, GRID_COLS - 1)
+
+        cell = self.cells[rand_x][rand_y]
+
+        if cell.number is None:
+            return self.get_random_numbered_cell()
+
+        return cell
+
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
