@@ -111,18 +111,20 @@ class Grid:
         amount = int(GRID_COLS * GRID_ROWS / 2)
         solver = Solver(self)
 
-        for _ in range(10):
+        while True:
             if self.remove_number(solver, amount):
                 break
-            print("Failed to remove numbers..........")
 
+    #fix recursion
     def remove_number(self, solver, amount):
+        if amount <= 0:
+            return True
+
         cell = self.get_random_numbered_cell()
+
         number = cell.number
         cell.number = None
         cell.show_number = False
-
-        print(f"removing a {number} at {cell.row} {cell.col}")
 
         if solver.has_single_solution():
             if self.remove_number(solver, amount - 1):

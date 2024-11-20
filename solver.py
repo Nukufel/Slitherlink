@@ -41,11 +41,11 @@ class Solver:
                 if adj_cell.color == BLUE:
                     blue_count += 1
 
-            if cell.number in [1, 3] and green_count > 1 and blue_count > 1 and (green_count > 3 or blue_count > 3):
+            if cell.number in [1, 3] and green_count != 3 and blue_count != 3:
                 return False
-            if cell.number == 2 and (green_count > 2 or blue_count > 2):
+            if cell.number == 2 and green_count != 2 and blue_count != 2:
                 return False
-            if cell.number == 0 and green_count > 0 and blue_count > 0:
+            if cell.number == 0 and green_count != 0 and blue_count != 0:
                 return False
         return True
 
