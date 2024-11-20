@@ -1,6 +1,6 @@
-from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN
-from cell import Cell
+from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN, RED
 from util import switch_color
+import copy
 
 MAX_CELLS = GRID_ROWS * GRID_COLS
 CORNERS = [
@@ -41,7 +41,7 @@ class Solver:
                 if adj_cell.color == BLUE:
                     blue_count += 1
 
-            if cell.number in [1, 3] and green_count > 1 and blue_count > 1:
+            if cell.number in [1, 3] and green_count > 1 and blue_count > 1 and (green_count > 3 or blue_count > 3):
                 return False
             if cell.number == 2 and (green_count > 2 or blue_count > 2):
                 return False
@@ -53,3 +53,6 @@ class Solver:
         cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
         cells.append(cell)
         return cells
+
+    def set_gird(self, grid):
+        self.grid = grid

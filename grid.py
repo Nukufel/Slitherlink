@@ -4,6 +4,7 @@ from cell import Cell
 from solver import Solver
 import random
 
+
 CELL_COUNT = GRID_COLS * GRID_ROWS
 
 
@@ -110,31 +111,25 @@ class Grid:
         amount = int(GRID_COLS * GRID_ROWS / 2)
         solver = Solver(self)
 
-        while True:
-            print("Removing numbers.............")
-            if self.remove_number(amount, solver):
+        for _ in range(10):
+            if self.remove_number(solver, amount):
                 break
+            print("Failed to remove numbers..........")
 
-        self.remove_color()
-
-    def remove_number(self, amount, solver):
-        if amount <= 0:
-            return True
-
+    def remove_number(self, solver, amount):
         cell = self.get_random_numbered_cell()
         number = cell.number
-
-        print(f"removing row {cell.row} col {cell.col} number {cell.number}")
-
-        cell.show_number = False
         cell.number = None
+        cell.show_number = False
+
+        print(f"removing a {number} at {cell.row} {cell.col}")
 
         if solver.has_single_solution():
-            if self.remove_number(amount - 1, solver):
+            if self.remove_number(solver, amount - 1):
                 return True
 
-        cell.show_number = True
         cell.number = number
+        cell.show_number = True
 
         return False
 
@@ -148,7 +143,6 @@ class Grid:
             return self.get_random_numbered_cell()
 
         return cell
-
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
