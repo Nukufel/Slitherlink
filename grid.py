@@ -109,7 +109,6 @@ class Grid:
     def remove_numbers(self):
         amount = GRID_COLS * GRID_ROWS / 2
         solver = Solver(self)
-        solver.solve()
 
         while True:
             if self.remove_number(amount, solver):
@@ -138,16 +137,6 @@ class Grid:
         cell.number = number
 
         return False
-
-    def compare_grids(self, copy_grid):
-        for row in self.cells:
-            for cell in row:
-                boarders = cell.result
-                copy_boarder = copy_grid.cells[cell.row][cell.col].result
-
-                if boarders != copy_boarder:
-                    return False
-        return True
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
