@@ -14,22 +14,52 @@ CORNERS = [
 class Solver:
     def __init__(self, grid):
         self.grid = grid
-
-    #cehck every combination of colors of the removed numbers. then check them and their neighbors for a second solution with flipping the colors
+        self.copy_grid = copy.deepcopy(grid)
+        self.solution_cntr = 0
 
     def has_single_solution(self):
-        for row in self.grid.cells:
-            for cell in row:
+        cells = [cell for row in self.grid.cells for cell in row]
+        cntr = len(cells)
+        print("checking every combination of relevant cells")
+        self.solution_cntr = 0
 
-                color = cell.color
-                cell.color = switch_color(color)
+        if self.check_every_combination_of_rel_cells(cells, cntr):
+            return False
 
-                if self.is_possible_cell(cell):
-                    cell.color = color
-                    return False
-
-                cell.color = color
         return True
+
+    def check_every_combination_of_rel_cells(self, relevant_cells, cntr, last_cell=None, last_color=None):
+        if cntr < 0:
+            if self.solution_cntr == 0:
+                self.solution_cntr += 1
+                print("found first solution")
+                last_cell.color = last_color
+                return False
+            print("found second solution")
+            last_cell.color = last_color
+            return True
+
+        cell = relevant_cells[cntr - 1]
+        original_color = cell.color
+
+        for color in [BLUE, GREEN]:
+            cell.color = color
+
+            if self.is_possible_cell(cell): # check if it is the solution grid
+                if self.check_every_combination_of_rel_cells(relevant_cells, cntr - 1, cell, original_color):
+                    return True
+
+        cell.color = original_color
+        return False
+
+    def get_relevant_cells(self, removed_cells):
+        relevant_cells = []
+        relevant_cells.extend(removed_cells)
+        for cell in removed_cells:
+            for adj_cells in self.grid.get_adjacent_cells(cell, DIRECTIONS):
+                if adj_cells not in relevant_cells:
+                    relevant_cells.append(adj_cells)
+        return relevant_cells
 
     def is_possible_cell(self, cell):
         for cell in self.get_cells_to_test(cell):
@@ -58,3 +88,10 @@ class Solver:
 
     def set_gird(self, grid):
         self.grid = grid
+
+    def is_same_grid(self):
+        for row in range(GRID_ROWS):
+            for col in range(GRID_COLS):
+                if self.grid.cells[row][col].color != self.copy_grid.cells[row][col].color:
+                    return False
+        return True

@@ -115,7 +115,9 @@ class Grid:
             if self.remove_number(solver, amount):
                 break
 
-    def remove_number(self, solver, amount):
+    def remove_number(self, solver, amount, removed_cells=None):
+        if removed_cells is None:
+            removed_cells = []
         if amount <= 0:
             return True
 
@@ -127,10 +129,13 @@ class Grid:
             cell.number = None
             cell.show_number = False
 
+            removed_cells.append(cell)
+
             if solver.has_single_solution():
                 if self.remove_number(solver, amount - 1):
                     return True
 
+            removed_cells.remove(cell)
             cell.number = number
             cell.show_number = True
 
