@@ -17,11 +17,9 @@ class Solver:
         self.solution_cntr = 0
 
     def has_single_solution(self):
-
         cells = [cell for row in self.grid.cells for cell in row]
         cntr = len(cells)
 
-        print("checking every combination of relevant cells")
         self.solution_cntr = 0
 
         return not self.solve(cells, cntr)
@@ -34,36 +32,52 @@ class Solver:
             return True
 
         cell = cells[cntr - 1]
-        original_color = cell.color
+        if cell.color is None:
+            cell.color = GREEN
 
-        for color in [BLUE, GREEN]:
-            cell.color = color
+        if self.is_possible_solution(): # check if it is the solution grid
+            if self.solve(cells, cntr - 1):
+                return True
 
-            if self.is_possible_cell(cell): # check if it is the solution grid
-                if self.solve(cells, cntr - 1):
-                    return True
+        cell.color = switch_color(cell.color)
 
-        cell.color = original_color
+        if self.is_possible_solution():
+            if self.solve(cells, cntr - 1):
+                return True
+
         return False
 
-    def is_possible_cell(self, base_cell):
-        for cell in self.get_cells_to_test(base_cell):
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            green_count = 4 - len(adj_cells)
-            blue_count = 0
+    def is_possible_solution(self):
+        for row in self.grid.cells:
+            for cell in row:
+                adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                green_count = 4 - len(adj_cells)
+                blue_count = 0
 
-            for adj_cell in adj_cells:
-                if adj_cell.color == GREEN:
-                    green_count += 1
-                if adj_cell.color == BLUE:
-                    blue_count += 1
+                for adj_cell in adj_cells:
+                    if adj_cell.color == GREEN:
+                        green_count += 1
+                    if adj_cell.color == BLUE:
+                        blue_count += 1
 
-            if cell.number in [1, 3] and ((green_count > 1 and blue_count > 1) or (green_count > 3 or blue_count > 3)):
-                return False
-            if cell.number == 2 and (green_count > 2 or blue_count > 2):
-                return False
-            if cell.number == 0 and green_count > 0 and blue_count > 0:
-                return False
+                if cell.color == GREEN:
+                    if cell.number == 3 and green_count > 1:
+                        return False
+                    if cell.number == 1 and blue_count > 1:
+                        return False
+                elif cell.color == BLUE:
+                    if cell.number == 3 and blue_count > 1:
+                        return False
+                    if cell.number == 1 and green_count > 1:
+                        return False
+                else:
+                    if cell.number in [1, 3] and ((green_count > 1 and blue_count > 1) or (green_count > 3 or blue_count > 3)):
+                        return False
+
+                if cell.number == 2 and (green_count > 2 or blue_count > 2):
+                    return False
+                if cell.number == 0 and green_count > 0 and blue_count > 0:
+                    return False
         return True
 
     def get_cells_to_test(self, cell):

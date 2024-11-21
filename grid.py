@@ -6,6 +6,8 @@ from cell import Cell
 from solver import Solver
 import random
 
+random.seed(4)
+
 
 CELL_COUNT = GRID_COLS * GRID_ROWS
 
@@ -115,11 +117,12 @@ class Grid:
         solver = Solver(copy_grid)
 
         while True:
+            print(f"trying to remove {amount} numbers")
             value, cells_to_remove = copy_grid.remove_number(solver, amount)
             if value:
                 for copied_cell in cells_to_remove:
+                    #self.cells[copied_cell.row][copied_cell.col] = copied_cell
                     cell = self.cells[copied_cell.row][copied_cell.col]
-                    cell.number = None
                     cell.show_number = False
                 break
 
@@ -142,6 +145,7 @@ class Grid:
             removed_cells.append(cell)
 
             if solver.has_single_solution():
+                print(f"    removed {number} {cell.row}, {cell.col}")
                 if self.remove_number(solver, amount - 1, removed_cells)[0]:
                     return True, removed_cells
 
