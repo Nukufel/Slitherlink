@@ -1,3 +1,5 @@
+import copy
+
 from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, MAX_FAILED_COUNT, BLUE_PERCENTAGE_RANGE
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
@@ -109,17 +111,25 @@ class Grid:
 
     def remove_numbers(self):
         amount = int(GRID_COLS * GRID_ROWS / 2)
-        solver = Solver(self)
+        copy_grid = copy.deepcopy(self)
+        solver = Solver(copy_grid)
 
         while True:
-            if self.remove_number(solver, amount):
+            value, cells_to_remove = copy_grid.remove_number(solver, amount)
+            if value:
+                for copied_cell in cells_to_remove:
+                    cell = self.cells[copied_cell.row][copied_cell.col]
+                    cell.number = None
+                    cell.show_number = False
                 break
 
     def remove_number(self, solver, amount, removed_cells=None):
         if removed_cells is None:
             removed_cells = []
         if amount <= 0:
-            return True
+            return True, removed_cells
+
+        self.remove_colors()
 
         for _ in range(GRID_ROWS * GRID_COLS):
 
@@ -132,8 +142,8 @@ class Grid:
             removed_cells.append(cell)
 
             if solver.has_single_solution():
-                if self.remove_number(solver, amount - 1):
-                    return True
+                if self.remove_number(solver, amount - 1, removed_cells)[0]:
+                    return True, removed_cells
 
             removed_cells.remove(cell)
             cell.number = number
@@ -243,7 +253,7 @@ class Grid:
         if adjacent_cell:
             adjacent_cell[0].result[opposite_border] = value
 
-    def remove_color(self):
+    def remove_colors(self):
         for row in self.cells:
             for cell in row:
                 cell.color = None
