@@ -12,38 +12,32 @@ CORNERS = [
 
 
 class Solver:
-    def __init__(self, grid):
+    def __init__(self, grid, original_grid):
         self.grid = grid
+        self.original_gird = original_grid
         self.solution_cntr = 0
 
     def has_single_solution(self):
         cells = [cell for row in self.grid.cells for cell in row]
-        cntr = len(cells)
 
-        self.solution_cntr = 0
+        self.grid.remove_colors()
+        print("trying to solve")
 
-        return not self.solve(cells, cntr)
+        return not self.solve(cells)
 
-    def solve(self, cells, cntr):
-        if cntr <= 0:
-            if self.solution_cntr == 0:
-                self.solution_cntr += 1
-                return False
+    def solve(self, cells, cntr=0):
+        if cntr > MAX_CELLS-1:
             return True
 
-        cell = cells[cntr - 1]
-        if cell.color is None:
-            cell.color = GREEN
+        cell = cells[cntr]
 
-        if self.is_possible_solution(): # check if it is the solution grid
-            if self.solve(cells, cntr - 1):
-                return True
+        for color in [GREEN, BLUE]:
+            print(f"    trying {color} with {cell.row}, {cell.col} at index {cntr}")
+            cell.color = color
 
-        cell.color = switch_color(cell.color)
-
-        if self.is_possible_solution():
-            if self.solve(cells, cntr - 1):
-                return True
+            if self.is_possible_solution() and not self.is_original_solution():
+                print(f"        {color } with {cell.row}, {cell.col} at index {cntr} is possible")
+                return self.solve(cells, cntr + 1)
 
         return False
 
@@ -65,19 +59,24 @@ class Solver:
                         return False
                     if cell.number == 1 and blue_count > 1:
                         return False
+                    if cell.number == 0 and blue_count > 0:
+                        return False
                 elif cell.color == BLUE:
                     if cell.number == 3 and blue_count > 1:
                         return False
                     if cell.number == 1 and green_count > 1:
                         return False
+                    if cell.number == 0 and green_count > 0:
+                        return False
                 else:
                     if cell.number in [1, 3] and ((green_count > 1 and blue_count > 1) or (green_count > 3 or blue_count > 3)):
+                        return False
+                    if cell.number == 0 and green_count > 0 and blue_count > 0:
                         return False
 
                 if cell.number == 2 and (green_count > 2 or blue_count > 2):
                     return False
-                if cell.number == 0 and green_count > 0 and blue_count > 0:
-                    return False
+
         return True
 
     def get_cells_to_test(self, cell):
@@ -87,3 +86,10 @@ class Solver:
 
     def set_gird(self, grid):
         self.grid = grid
+
+    def is_original_solution(self):
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.color != self.original_gird.cells[cell.row][cell.col].color:
+                    return False
+        return True

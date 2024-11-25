@@ -6,7 +6,7 @@ from cell import Cell
 from solver import Solver
 import random
 
-random.seed(4)
+random.seed(5)
 
 
 CELL_COUNT = GRID_COLS * GRID_ROWS
@@ -114,16 +114,16 @@ class Grid:
     def remove_numbers(self):
         amount = int(GRID_COLS * GRID_ROWS / 2)
         copy_grid = copy.deepcopy(self)
-        solver = Solver(copy_grid)
+        solver = Solver(copy_grid, self)
 
         while True:
             print(f"trying to remove {amount} numbers")
             value, cells_to_remove = copy_grid.remove_number(solver, amount)
             if value:
                 for copied_cell in cells_to_remove:
-                    #self.cells[copied_cell.row][copied_cell.col] = copied_cell
-                    cell = self.cells[copied_cell.row][copied_cell.col]
-                    cell.show_number = False
+                    self.cells[copied_cell.row][copied_cell.col] = copied_cell
+                    #cell = self.cells[copied_cell.row][copied_cell.col]
+                    #cell.show_number = False
                 break
 
     def remove_number(self, solver, amount, removed_cells=None):
@@ -131,8 +131,6 @@ class Grid:
             removed_cells = []
         if amount <= 0:
             return True, removed_cells
-
-        self.remove_colors()
 
         for _ in range(GRID_ROWS * GRID_COLS):
 
