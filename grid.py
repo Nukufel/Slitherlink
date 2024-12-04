@@ -113,11 +113,12 @@ class Grid:
 
     def remove_numbers(self):
         amount = int(GRID_COLS * GRID_ROWS / 2)
+        amount = 1
         copy_grid = copy.deepcopy(self)
         solver = Solver(copy_grid, self)
 
         while True:
-            print(f"trying to remove {amount} numbers")
+            print("start Removing numbers")
             value, cells_to_remove = copy_grid.remove_number(solver, amount)
             if value:
                 for copied_cell in cells_to_remove:
@@ -132,26 +133,25 @@ class Grid:
         if amount <= 0:
             return True, removed_cells
 
-        for _ in range(GRID_ROWS * GRID_COLS):
+        cell = self.get_random_numbered_cell()
 
-            cell = self.get_random_numbered_cell()
+        number = cell.number
+        color = cell.color
+        cell.number = None
+        cell.show_number = False
+        cell.color = None
 
-            number = cell.number
-            cell.number = None
-            cell.show_number = False
+        removed_cells.append(cell)
 
-            removed_cells.append(cell)
+        if solver.has_single_solution():
+            return self.remove_number(solver, amount - 1, removed_cells)
 
-            if solver.has_single_solution():
-                print(f"    removed {number} {cell.row}, {cell.col}")
-                if self.remove_number(solver, amount - 1, removed_cells)[0]:
-                    return True, removed_cells
+        removed_cells.remove(cell)
+        cell.number = number
+        cell.show_number = True
+        cell.color = color
 
-            removed_cells.remove(cell)
-            cell.number = number
-            cell.show_number = True
-
-        return False
+        return False, None
 
     def get_random_numbered_cell(self):
         rand_x = random.randint(0, GRID_ROWS - 1)
@@ -259,6 +259,11 @@ class Grid:
         for row in self.cells:
             for cell in row:
                 cell.color = None
+
+    def set_all_green(self):
+        for row in self.cells:
+            for cell in row:
+                cell.color = GREEN
 
 
 def set_boarders_for_cells(grid, directions):

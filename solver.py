@@ -1,6 +1,6 @@
 from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN, RED
 from util import switch_color
-import copy
+import random
 
 MAX_CELLS = GRID_ROWS * GRID_COLS
 CORNERS = [
@@ -15,31 +15,59 @@ class Solver:
     def __init__(self, grid, original_grid):
         self.grid = grid
         self.original_gird = original_grid
-        self.solution_cntr = 0
 
     def has_single_solution(self):
-        cells = [cell for row in self.grid.cells for cell in row]
+        self.grid.set_all_green()
+        self.scout_patterns()
+        return self.solve(self.get_all_blue_cells())
 
-        self.grid.remove_colors()
-        print("trying to solve")
+    def solve(self, blue_cells):
+        rand_cell = random.choice(blue_cells)
+        green_adj_cells = [cell for cell in self.grid.get_adjacent_cells(rand_cell, DIRECTIONS) if cell.color == GREEN]
 
-        return not self.solve(cells)
+        if green_adj_cells:
+            cell = random.choice(green_adj_cells)
 
-    def solve(self, cells, cntr=0):
-        if cntr > MAX_CELLS-1:
-            return True
+            cell.color = BLUE
+            blue_cells.append(cell)
 
-        cell = cells[cntr]
+            if self.is_possible_solution():
+                if self.solve(blue_cells):
+                    return True
 
-        for color in [GREEN, BLUE]:
-            print(f"    trying {color} with {cell.row}, {cell.col} at index {cntr}")
-            cell.color = color
+            blue_cells.remove(cell)
+            cell.color = GREEN
 
-            if self.is_possible_solution() and not self.is_original_solution():
-                print(f"        {color } with {cell.row}, {cell.col} at index {cntr} is possible")
-                return self.solve(cells, cntr + 1)
+            return False
 
-        return False
+
+
+
+    def get_all_blue_cells(self):
+        blue_cells = []
+
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.color == BLUE:
+                    blue_cells.append(cell)
+        return blue_cells
+
+    def scout_patterns(self):
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.number == 0 and self.is_border_cell(cell):
+                    cell.color = GREEN
+                if cell.number == 3 and self.is_corner(cell):
+                    cell.color = BLUE
+                if cell.number == 1 and self.is_corner(cell):
+                    cell.color = GREEN
+                if cell.number == 2 and self.is_corner(cell):
+                    self.color_adj_cells(cell, BLUE)
+
+    def color_adj_cells(self, cell, color):
+        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+        for adj_cell in adj_cells:
+            adj_cell.color = color
 
     def is_possible_solution(self):
         for row in self.grid.cells:
@@ -93,3 +121,10 @@ class Solver:
                 if cell.color != self.original_gird.cells[cell.row][cell.col].color:
                     return False
         return True
+
+    def is_corner(self, cell):
+        return cell.row in {0, GRID_ROWS - 1} and cell.col in {0, GRID_COLS - 1}
+
+    def is_border_cell(self, cell):
+        return cell.row in {0, GRID_ROWS - 1} or cell.col in {0, GRID_COLS - 1}
+
