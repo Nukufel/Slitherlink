@@ -113,12 +113,11 @@ class Grid:
 
     def remove_numbers(self):
         amount = int(GRID_COLS * GRID_ROWS / 2)
-        amount = 1
+        amount = 4
         copy_grid = copy.deepcopy(self)
         solver = Solver(copy_grid, self)
 
         while True:
-            print("start Removing numbers")
             value, cells_to_remove = copy_grid.remove_number(solver, amount)
             if value:
                 for copied_cell in cells_to_remove:
@@ -142,7 +141,6 @@ class Grid:
         cell.color = None
 
         removed_cells.append(cell)
-
         if solver.has_single_solution():
             return self.remove_number(solver, amount - 1, removed_cells)
 
