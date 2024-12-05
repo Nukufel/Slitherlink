@@ -118,7 +118,7 @@ class Grid:
         copy_grid = copy.deepcopy(self)
         solver = Solver(copy_grid, self)
 
-        for _ in range(CELL_COUNT ** 5):
+        for _ in range(CELL_COUNT ** 3):
             value, cells_to_remove = copy_grid.remove_number(solver, amount)
             if value:
                 for copied_cell in cells_to_remove:
@@ -130,8 +130,7 @@ class Grid:
             print("Failed to remove numbers, no unique solution")
 
     def remove_number(self, solver, amount, removed_cells=None):
-        if amount > FAST_SOLVE_AMOUNT:
-            print(amount, FAST_SOLVE_AMOUNT)
+        if amount > REMOVE_AMOUNT - FAST_SOLVE_AMOUNT:
             fast_remove = True
         else:
             fast_remove = False
@@ -160,6 +159,7 @@ class Grid:
         return False, None
 
     def get_random_numbered_cell(self):
+        start = time.time()
         while True:
             rand_x = random.randint(0, GRID_ROWS - 1)
             rand_y = random.randint(0, GRID_COLS - 1)
@@ -171,6 +171,7 @@ class Grid:
 
             if cell.number is not None:
                 if random.choice(adj_empty_cells) == cell:
+                    print("Time to get random numbered cell: ", time.time() - start)
                     return cell
 
     def get_adjacent_cells(self, cell, directions):

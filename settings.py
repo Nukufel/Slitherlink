@@ -7,7 +7,7 @@ GREEN = (0, 255, 0)
 
 # Cell and Grid size
 CELL_SIZE = 35
-GRID_ROWS, GRID_COLS = 10, 10
+GRID_ROWS, GRID_COLS = 5, 5
 CELL_COUNT = GRID_ROWS * GRID_COLS
 
 # Padding around the grid to prevent border cutoff
@@ -27,4 +27,4 @@ DIRECTIONS = {
 }
 
 REMOVE_AMOUNT = int(CELL_COUNT/2)
-FAST_SOLVE_AMOUNT = REMOVE_AMOUNT - int(REMOVE_AMOUNT/4)
+FAST_SOLVE_AMOUNT = int(REMOVE_AMOUNT*0.4)

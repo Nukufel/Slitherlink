@@ -18,7 +18,6 @@ class Solver:
         self.original_gird = original_grid
 
     def has_single_solution(self):
-        start = time.time()
         self.grid.remove_colors()
         while self.scout_patterns():
             pass
@@ -152,7 +151,6 @@ class Solver:
             diagonal_3s = [diagonal_cell for diagonal_cell in diagonal_cells if diagonal_cell.number == 3]
             for diagonal_3 in diagonal_3s:
                 diagonal_3.color = switch_color(cell.color)
-
 
     def pattern_1s(self, cell):
         if self.is_corner(cell) and cell.color is None:
