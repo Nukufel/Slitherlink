@@ -148,15 +148,13 @@ class Grid:
         return False, None
 
     def get_random_numbered_cell(self):
-        rand_x = random.randint(0, GRID_ROWS - 1)
-        rand_y = random.randint(0, GRID_COLS - 1)
+        while True:
+            rand_x = random.randint(0, GRID_ROWS - 1)
+            rand_y = random.randint(0, GRID_COLS - 1)
+            cell = self.cells[rand_x][rand_y]
 
-        cell = self.cells[rand_x][rand_y]
-
-        if cell.number is None:
-            return self.get_random_numbered_cell()
-
-        return cell
+            if cell.number is not None:
+                return cell
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
