@@ -6,8 +6,6 @@ from cell import Cell
 from solver import Solver
 import random
 
-random.seed(5)
-
 
 CELL_COUNT = GRID_COLS * GRID_ROWS
 
@@ -113,7 +111,6 @@ class Grid:
 
     def remove_numbers(self):
         amount = int(GRID_COLS * GRID_ROWS / 2)
-        amount = 4
         copy_grid = copy.deepcopy(self)
         solver = Solver(copy_grid, self)
 
@@ -135,19 +132,17 @@ class Grid:
         cell = self.get_random_numbered_cell()
 
         number = cell.number
-        color = cell.color
         cell.number = None
         cell.show_number = False
-        cell.color = None
 
         removed_cells.append(cell)
         if solver.has_single_solution():
-            return self.remove_number(solver, amount - 1, removed_cells)
+            if self.remove_number(solver, amount - 1, removed_cells)[0]:
+                return True, removed_cells
 
         removed_cells.remove(cell)
         cell.number = number
         cell.show_number = True
-        cell.color = color
 
         return False, None
 

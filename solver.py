@@ -18,62 +18,27 @@ class Solver:
 
     def has_single_solution(self):
         self.grid.remove_colors()
-        return self.solve(self.scout_patterns())
+        cells = [cell for row in self.grid.cells for cell in row]
+        return not self.solve(cells)
 
     def solve(self, cells):
-
-        if len(cells) > MAX_CELLS:
+        print(len(cells))
+        try:
+            cell = cells[-1]
+        except IndexError:
             return True
 
-        rand_cell = cells[-1]
-        green_adj_cells = [cell for cell in self.grid.get_adjacent_cells(rand_cell, DIRECTIONS) if cell.color is None]
+        cells.remove(cell)
 
-        if green_adj_cells:
-            cell = random.choice(green_adj_cells)
-            for color in [GREEN, BLUE]:
-                cell.color = color
-                cells.append(cell)
-                if self.is_possible_solution():
-                    if self.solve(cells):
-                        return True
-            cell.color = None
-            cells.remove(cell)
+        for color in [GREEN, BLUE]:
+            cell.color = color
+            if self.is_possible_solution() and not self.is_original_solution():
+                if self.solve(cells):
+                    return True
+
+        cell.color = None
+        cells.append(cell)
         return False
-
-    def get_all_blue_cells(self):
-        blue_cells = []
-
-        for row in self.grid.cells:
-            for cell in row:
-                if cell.color == BLUE:
-                    blue_cells.append(cell)
-        return blue_cells
-
-    def scout_patterns(self):
-        found_cells = []
-        for row in self.grid.cells:
-            for cell in row:
-                if cell.number == 0 and self.is_border_cell(cell):
-                    cell.color = GREEN
-                    found_cells.append(cell)
-                if cell.number == 3 and self.is_corner(cell):
-                    cell.color = BLUE
-                    found_cells.append(cell)
-                if cell.number == 1 and self.is_corner(cell):
-                    cell.color = GREEN
-                    found_cells.append(cell)
-                if cell.number == 2 and self.is_corner(cell):
-                    found_cells.extend(self.color_adj_cells(cell, BLUE))
-        return found_cells
-
-    def color_adj_cells(self, cell, color):
-        found_cells = []
-        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-        for adj_cell in adj_cells:
-            adj_cell.color = color
-            found_cells.append(adj_cell)
-        return found_cells
-
 
     def is_possible_solution(self):
         for row in self.grid.cells:
