@@ -1,3 +1,5 @@
+import time
+
 from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN, RED, CELL_COUNT
 from util import switch_color, hash_object
 from copy import deepcopy
@@ -40,18 +42,23 @@ class Solver:
         cells.append(cell)
         return False
 
+    def count_adj_colors(self, cell):
+        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+        green_count = 4 - len(adj_cells)
+        blue_count = 0
+
+        for adj_cell in adj_cells:
+            if adj_cell.color == GREEN:
+                green_count += 1
+            if adj_cell.color == BLUE:
+                blue_count += 1
+        return green_count, blue_count
+
     def is_possible_solution(self):
         for row in self.grid.cells:
             for cell in row:
-                adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-                green_count = 4 - len(adj_cells)
-                blue_count = 0
 
-                for adj_cell in adj_cells:
-                    if adj_cell.color == GREEN:
-                        green_count += 1
-                    if adj_cell.color == BLUE:
-                        blue_count += 1
+                green_count, blue_count = self.count_adj_colors(cell)
 
                 if cell.color == GREEN:
                     if cell.number == 3 and green_count > 1:
@@ -96,6 +103,8 @@ class Solver:
         copy_grid = deepcopy(self.grid)
         for row in self.grid.cells:
             for cell in row:
+                if cell.number is None:
+                    self.pattern_none(cell)
 
                 if cell.number == 0:
                     self.pattern_0s(cell)
@@ -113,22 +122,36 @@ class Solver:
             return False
         return True
 
+    def pattern_none(self, cell):
+        green_count, blue_count = self.count_adj_colors(cell)
+        if green_count == 4:
+            cell.color = GREEN
+        if blue_count == 4:
+            cell.color = BLUE
+
     def pattern_0s(self, cell):
         if self.is_border_cell(cell) and cell.color is None:
             cell.color = GREEN
 
         if cell.color is None:
             adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            color = [adj_cell.color for adj_cell in adj_cells if cell.color is not None][0]
+            color = [adj_cell.color for adj_cell in adj_cells if cell.color is not None]
             if color:
-                cell.color = color
+                cell.color = color[0]
 
         if cell.color is not None:
             self.color_adj_cells(cell, cell.color)
+
             adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
             adj_3s = [adj_cell for adj_cell in adj_cells if adj_cell.number == 3]
             for adj_3 in adj_3s:
                 self.color_adj_cells(adj_3, switch_color(cell.color))
+
+            diagonal_cells = self.get_diagonal_cell(cell)
+            diagonal_3s = [diagonal_cell for diagonal_cell in diagonal_cells if diagonal_cell.number == 3]
+            for diagonal_3 in diagonal_3s:
+                diagonal_3.color = switch_color(cell.color)
+
 
     def pattern_1s(self, cell):
         if self.is_corner(cell) and cell.color is None:
@@ -147,6 +170,13 @@ class Solver:
             for adj_boarder_1 in adj_boarder_1s:
                 adj_boarder_1.color = cell.color
 
+        if cell.color is None:
+            green_count, blue_count = self.count_adj_colors(cell)
+            if green_count > 1:
+                cell.color = GREEN
+            if blue_count > 1:
+                cell.color = BLUE
+
     def pattern_2s(self, cell):
         if self.is_corner(cell):
             self.color_adj_cells(cell, BLUE)
@@ -155,10 +185,11 @@ class Solver:
             if any([adj_cell for adj_cell in adj_cells if adj_cell.number == 1]):
                 cell.color = BLUE
 
-            diagonal_cell = self.get_corner_diagonal_cell(cell)
-            if diagonal_cell.number == 3:
-                diagonal_cell.color = GREEN
-                cell.color = BLUE
+            diagonal_cells = self.get_diagonal_cell(cell)
+            for diagonal_cell in diagonal_cells:
+                if diagonal_cell.number == 3:
+                    diagonal_cell.color = GREEN
+                    cell.color = BLUE
 
     def pattern_3s(self, cell):
         if self.is_corner(cell) and cell.color is None:
@@ -178,20 +209,35 @@ class Solver:
                        adj_cell.color is None]):
                 cell.color = BLUE
 
+        if cell.color is None:
+            green_count, blue_count = self.count_adj_colors(cell)
+            if green_count > 1:
+                cell.color = BLUE
+            if blue_count > 1:
+                cell.color = GREEN
+
     def color_adj_cells(self, cell, color):
         adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
         for adj_cell in adj_cells:
             if adj_cell.color is None:
                 adj_cell.color = color
 
-    def get_corner_diagonal_cell(self, cell):
-        diagonal_to_corner = {
-            CORNERS[0]: (GRID_ROWS - (GRID_COLS - 1), GRID_COLS - (GRID_COLS - 1)),
-            CORNERS[1]: (GRID_ROWS - (GRID_COLS - 1), GRID_COLS - 2),
-            CORNERS[2]: (GRID_ROWS - 2, GRID_COLS - 2),
-            CORNERS[3]: (GRID_ROWS - 2, GRID_COLS - (GRID_COLS - 1))
-        }
-        for key, pos in diagonal_to_corner.items():
-            if key == (cell.row, cell.col):
-                return self.grid.cells[pos[0]][pos[1]]
-        return None
+    def get_diagonal_cell(self, cell):
+        diagonal_cords = [
+            (-1, -1), # top left
+            (-1, 1), # top right
+            (1, 1), # bottom right
+            (1, -1) # bottom left
+        ]
+        diagonal_cells = []
+        for x, y in diagonal_cords:
+            try:
+                row = cell.row + x
+                col = cell.col + y
+                if row < 0 or col < 0:
+                    raise IndexError
+                diagonal_cells.append(self.grid.cells[row][col])
+            except IndexError:
+                pass
+        return diagonal_cells
+

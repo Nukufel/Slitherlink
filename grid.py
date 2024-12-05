@@ -9,19 +9,12 @@ from solver import Solver
 import random
 
 
-random.seed(1)
-
-
 class Grid:
     def __init__(self):
         self.cells = []
         self.action_stack = []
         # Create the grid
         self.create_grid()
-
-    def to_dict(self):
-        # Convert the object into a serializable form
-        return {"data": self.data}
 
     def create_grid(self):
         """Create a grid with cells."""
@@ -110,11 +103,9 @@ class Grid:
                 failed_count += 1
 
     def make_puzzle(self):
-        start = time.time()
         self.initialize_blue_cells()
         self.set_boarders_for_cells(DIRECTIONS)
         self.set_number_for_cells()
-        print("Time to generate base puzzle: ", time.time() - start)
         start2 = time.time()
         self.remove_numbers()
         print("Time to remove numbers: ", time.time() - start2)
@@ -137,7 +128,7 @@ class Grid:
             print("Failed to remove numbers, no unique solution")
 
     def remove_number(self, solver, amount, removed_cells=None, fast_remove=True):
-        if amount > int(CELL_COUNT*4 / 5):
+        if amount > int(CELL_COUNT*2/3):
             fast_remove = True
         else:
             fast_remove = False
