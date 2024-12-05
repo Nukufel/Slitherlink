@@ -1,13 +1,11 @@
 import copy
 
-from settings import CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, MAX_FAILED_COUNT, BLUE_PERCENTAGE_RANGE
+from settings import (CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, MAX_FAILED_COUNT, BLUE_PERCENTAGE_RANGE,
+                      CELL_COUNT)
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
 from solver import Solver
 import random
-
-
-CELL_COUNT = GRID_COLS * GRID_ROWS
 
 
 class Grid:
@@ -110,18 +108,21 @@ class Grid:
         self.remove_numbers()
 
     def remove_numbers(self):
+        is_done = False
         amount = int(GRID_COLS * GRID_ROWS / 2)
         copy_grid = copy.deepcopy(self)
         solver = Solver(copy_grid, self)
 
-        while True:
+        for _ in range(CELL_COUNT**5):
             value, cells_to_remove = copy_grid.remove_number(solver, amount)
             if value:
                 for copied_cell in cells_to_remove:
-                    self.cells[copied_cell.row][copied_cell.col] = copied_cell
-                    #cell = self.cells[copied_cell.row][copied_cell.col]
-                    #cell.show_number = False
+                    cell = self.cells[copied_cell.row][copied_cell.col]
+                    cell.show_number = False
+                is_done = True
                 break
+        if not is_done:
+            print("Failed to remove numbers, no unique solution")
 
     def remove_number(self, solver, amount, removed_cells=None):
         if removed_cells is None:
@@ -253,11 +254,6 @@ class Grid:
             for cell in row:
                 cell.color = None
 
-    def set_all_green(self):
-        for row in self.cells:
-            for cell in row:
-                cell.color = GREEN
-
 
 def set_boarders_for_cells(grid, directions):
     for row in grid.cells:
@@ -268,10 +264,3 @@ def set_boarders_for_cells(grid, directions):
                     adjacent_cell = grid.get_adjacent_cells(cell, one_direction)
                     if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
                         grid.set_boarder_results(cell, direction_name, True)
-
-
-def remove_result(grid):
-    for row in grid.cells:
-        for cell in row:
-            for key in cell.result.keys():
-                cell.result[key] = None
