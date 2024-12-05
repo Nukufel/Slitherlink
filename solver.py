@@ -1,5 +1,12 @@
 from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN, RED, CELL_COUNT
 
+CORNERS = [
+    (0, 0),
+    (0, GRID_COLS - 1),
+    (GRID_ROWS - 1, GRID_COLS - 1),
+    (GRID_ROWS - 1, 0)
+]
+
 
 class Solver:
     def __init__(self, grid, original_grid):
@@ -8,7 +15,8 @@ class Solver:
 
     def has_single_solution(self):
         self.grid.remove_colors()
-        cells = [cell for row in self.grid.cells for cell in row]
+        self.scout_patterns()
+        cells = [cell for row in self.grid.cells for cell in row if cell.color is None]
         return not self.solve(cells)
 
     def solve(self, cells):
@@ -73,3 +81,28 @@ class Solver:
                 if cell.color != self.original_gird.cells[cell.row][cell.col].color:
                     return False
         return True
+
+    def is_corner(self, cell):
+        return cell.row in {0, GRID_ROWS - 1} and cell.col in {0, GRID_COLS - 1}
+
+    def is_border_cell(self, cell):
+        return cell.row in {0, GRID_ROWS - 1} or cell.col in {0, GRID_COLS - 1}
+
+    def scout_patterns(self):
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.number == 0 and self.is_border_cell(cell):
+                    cell.color = GREEN
+                if cell.number == 3 and self.is_corner(cell):
+                    cell.color = BLUE
+                if cell.number == 1 and self.is_corner(cell):
+                    cell.color = GREEN
+                if cell.number == 2 and self.is_corner(cell):
+                    self.color_adj_cells(cell, BLUE)
+                if cell.number == 0 and cell.color is not None:
+                    self.color_adj_cells(cell, cell.color)
+
+    def color_adj_cells(self, cell, color):
+        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+        for adj_cell in adj_cells:
+            adj_cell.color = color

@@ -1,4 +1,5 @@
 import copy
+import time
 
 from settings import (CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, MAX_FAILED_COUNT, BLUE_PERCENTAGE_RANGE,
                       CELL_COUNT)
@@ -102,18 +103,22 @@ class Grid:
                 failed_count += 1
 
     def make_puzzle(self):
+        start = time.time()
         self.initialize_blue_cells()
         self.set_boarders_for_cells(DIRECTIONS)
         self.set_number_for_cells()
+        print("Time to generate base puzzle: ", time.time() - start)
+        start2 = time.time()
         self.remove_numbers()
+        print("Time to remove numbers: ", time.time() - start2)
 
     def remove_numbers(self):
         is_done = False
-        amount = int(GRID_COLS * GRID_ROWS / 2)
+        amount = int(CELL_COUNT/ 2)
         copy_grid = copy.deepcopy(self)
         solver = Solver(copy_grid, self)
 
-        for _ in range(CELL_COUNT**5):
+        for _ in range(CELL_COUNT ** 5):
             value, cells_to_remove = copy_grid.remove_number(solver, amount)
             if value:
                 for copied_cell in cells_to_remove:
@@ -124,7 +129,12 @@ class Grid:
         if not is_done:
             print("Failed to remove numbers, no unique solution")
 
-    def remove_number(self, solver, amount, removed_cells=None):
+    def remove_number(self, solver, amount, removed_cells=None, fast_remove=True):
+        if amount > int(CELL_COUNT*4 / 5):
+            fast_remove = True
+        else:
+            fast_remove = False
+
         if removed_cells is None:
             removed_cells = []
         if amount <= 0:
@@ -137,8 +147,9 @@ class Grid:
         cell.show_number = False
 
         removed_cells.append(cell)
-        if solver.has_single_solution():
-            if self.remove_number(solver, amount - 1, removed_cells)[0]:
+
+        if fast_remove or solver.has_single_solution():
+            if self.remove_number(solver, amount - 1, removed_cells, fast_remove)[0]:
                 return True, removed_cells
 
         removed_cells.remove(cell)
@@ -153,8 +164,13 @@ class Grid:
             rand_y = random.randint(0, GRID_COLS - 1)
             cell = self.cells[rand_x][rand_y]
 
+            adj_cells = self.get_adjacent_cells(cell, DIRECTIONS)
+            adj_empty_cells = [adj_cell for adj_cell in adj_cells if adj_cell.number is None]
+            adj_empty_cells.append(cell)
+
             if cell.number is not None:
-                return cell
+                if random.choice(adj_empty_cells) == cell:
+                    return cell
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
