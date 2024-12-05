@@ -16,6 +16,10 @@ class Grid:
         # Create the grid
         self.create_grid()
 
+    def to_dict(self):
+        # Convert the object into a serializable form
+        return {"data": self.data}
+
     def create_grid(self):
         """Create a grid with cells."""
         for row in range(GRID_ROWS):
@@ -278,3 +282,4 @@ def set_boarders_for_cells(grid, directions):
                     adjacent_cell = grid.get_adjacent_cells(cell, one_direction)
                     if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
                         grid.set_boarder_results(cell, direction_name, True)
+

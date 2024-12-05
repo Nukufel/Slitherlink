@@ -1,3 +1,6 @@
+import hashlib
+import pickle
+
 from settings import GRID_ROWS, GRID_COLS, GREEN, BLUE
 
 
@@ -25,3 +28,8 @@ def switch_color(color):
     if color == GREEN:
         return BLUE
     return GREEN
+
+
+def hash_object(obj):
+    return hashlib.md5(pickle.dumps(obj)).hexdigest()
+

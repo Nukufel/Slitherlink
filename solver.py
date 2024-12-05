@@ -1,4 +1,6 @@
 from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN, RED, CELL_COUNT
+from util import switch_color, hash_object
+from copy import deepcopy
 
 CORNERS = [
     (0, 0),
@@ -15,7 +17,9 @@ class Solver:
 
     def has_single_solution(self):
         self.grid.remove_colors()
-        self.scout_patterns()
+        while self.scout_patterns():
+            print("Scouting patterns")
+            pass
         cells = [cell for row in self.grid.cells for cell in row if cell.color is None]
         return not self.solve(cells)
 
@@ -89,20 +93,71 @@ class Solver:
         return cell.row in {0, GRID_ROWS - 1} or cell.col in {0, GRID_COLS - 1}
 
     def scout_patterns(self):
+        copy_grid = deepcopy(self.grid)
         for row in self.grid.cells:
             for cell in row:
-                if cell.number == 0 and self.is_border_cell(cell):
-                    cell.color = GREEN
-                if cell.number == 3 and self.is_corner(cell):
-                    cell.color = BLUE
-                if cell.number == 1 and self.is_corner(cell):
-                    cell.color = GREEN
-                if cell.number == 2 and self.is_corner(cell):
-                    self.color_adj_cells(cell, BLUE)
-                if cell.number == 0 and cell.color is not None:
-                    self.color_adj_cells(cell, cell.color)
+
+                if cell.number == 0:
+                    if self.is_border_cell(cell):
+                        cell.color = GREEN
+                    if cell.color is None:
+                        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                        color = [cell.color for cell in adj_cells if cell.color is not None][0]
+                        if color:
+                            cell.color = color
+                    if cell.color is not None:
+                        self.color_adj_cells(cell, cell.color)
+
+                if cell.number == 3:
+                    if self.is_corner(cell):
+                        cell.color = BLUE
+                    if cell.color is not None:
+                        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                        adj_3s = [adj_cell for adj_cell in adj_cells if cell.number == 3]
+                        for adj_3 in adj_3s:
+                            adj_3.color = switch_color(cell.color)
+
+                if cell.number == 1:
+                    if self.is_corner(cell):
+                        cell.color = GREEN
+                    if cell.color is not None:
+                        if self.is_border_cell(cell):
+                            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                            adj_boarder_1s = [adj_cell for adj_cell in adj_cells if cell.number == 1 and self.is_border_cell(adj_cell)]
+                            for adj_boarder_1 in adj_boarder_1s:
+                                adj_boarder_1.color = cell.color
+
+                if cell.number == 2:
+                    if self.is_corner(cell):
+                        self.color_adj_cells(cell, BLUE)
+                        diagonal_cell = self.get_corner_diagonal_cell(cell)
+                        if diagonal_cell.number == 3:
+                            diagonal_cell.color = GREEN
+                            cell.color = BLUE
+
+            if hash_object(copy_grid) == hash_object(self.grid):
+                return False
+            return True
 
     def color_adj_cells(self, cell, color):
         adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
         for adj_cell in adj_cells:
             adj_cell.color = color
+
+    def get_corner_diagonal_cell(self, cell):
+        diagonal_to_corner = {
+            CORNERS[0]: (GRID_ROWS - (GRID_COLS - 1), GRID_COLS - (GRID_COLS - 1)),
+            CORNERS[1]: (GRID_ROWS - (GRID_COLS - 1), GRID_COLS - 2),
+            CORNERS[2]: (GRID_ROWS - 2, GRID_COLS - 2),
+            CORNERS[3]: (GRID_ROWS - 2, GRID_COLS - (GRID_COLS - 1))
+        }
+        for key, pos in diagonal_to_corner.items():
+            if key == (cell.row, cell.col):
+                return self.grid.cells[pos[0]][pos[1]]
+        return None
+
+
+
+
+
+
