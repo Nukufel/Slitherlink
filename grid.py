@@ -2,11 +2,13 @@ import copy
 import time
 
 from settings import (CELL_SIZE, BLUE, GREEN, GRID_COLS, GRID_ROWS, DIRECTIONS, MAX_FAILED_COUNT, BLUE_PERCENTAGE_RANGE,
-                      CELL_COUNT)
+                      CELL_COUNT, FAST_SOLVE_AMOUNT, REMOVE_AMOUNT)
 from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
 from solver import Solver
 import random
+
+random.seed(2)
 
 
 class Grid:
@@ -112,7 +114,7 @@ class Grid:
 
     def remove_numbers(self):
         is_done = False
-        amount = int(CELL_COUNT/ 2)
+        amount = REMOVE_AMOUNT
         copy_grid = copy.deepcopy(self)
         solver = Solver(copy_grid, self)
 
@@ -127,8 +129,9 @@ class Grid:
         if not is_done:
             print("Failed to remove numbers, no unique solution")
 
-    def remove_number(self, solver, amount, removed_cells=None, fast_remove=True):
-        if amount > int(CELL_COUNT*2/3):
+    def remove_number(self, solver, amount, removed_cells=None):
+        if amount > FAST_SOLVE_AMOUNT:
+            print(amount, FAST_SOLVE_AMOUNT)
             fast_remove = True
         else:
             fast_remove = False
@@ -147,7 +150,7 @@ class Grid:
         removed_cells.append(cell)
 
         if fast_remove or solver.has_single_solution():
-            if self.remove_number(solver, amount - 1, removed_cells, fast_remove)[0]:
+            if self.remove_number(solver, amount - 1, removed_cells)[0]:
                 return True, removed_cells
 
         removed_cells.remove(cell)

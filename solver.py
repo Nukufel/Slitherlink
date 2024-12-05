@@ -18,6 +18,7 @@ class Solver:
         self.original_gird = original_grid
 
     def has_single_solution(self):
+        start = time.time()
         self.grid.remove_colors()
         while self.scout_patterns():
             pass
