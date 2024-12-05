@@ -9,6 +9,9 @@ from solver import Solver
 import random
 
 
+random.seed(1)
+
+
 class Grid:
     def __init__(self):
         self.cells = []

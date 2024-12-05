@@ -18,7 +18,6 @@ class Solver:
     def has_single_solution(self):
         self.grid.remove_colors()
         while self.scout_patterns():
-            print("Scouting patterns")
             pass
         cells = [cell for row in self.grid.cells for cell in row if cell.color is None]
         return not self.solve(cells)
@@ -69,7 +68,8 @@ class Solver:
                     if cell.number == 0 and green_count > 0:
                         return False
                 else:
-                    if cell.number in [1, 3] and ((green_count > 1 and blue_count > 1) or (green_count > 3 or blue_count > 3)):
+                    if cell.number in [1, 3] and (
+                            (green_count > 1 and blue_count > 1) or (green_count > 3 or blue_count > 3)):
                         return False
                     if cell.number == 0 and green_count > 0 and blue_count > 0:
                         return False
@@ -98,51 +98,91 @@ class Solver:
             for cell in row:
 
                 if cell.number == 0:
-                    if self.is_border_cell(cell):
-                        cell.color = GREEN
-                    if cell.color is None:
-                        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-                        color = [cell.color for cell in adj_cells if cell.color is not None][0]
-                        if color:
-                            cell.color = color
-                    if cell.color is not None:
-                        self.color_adj_cells(cell, cell.color)
-
-                if cell.number == 3:
-                    if self.is_corner(cell):
-                        cell.color = BLUE
-                    if cell.color is not None:
-                        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-                        adj_3s = [adj_cell for adj_cell in adj_cells if cell.number == 3]
-                        for adj_3 in adj_3s:
-                            adj_3.color = switch_color(cell.color)
+                    self.pattern_0s(cell)
 
                 if cell.number == 1:
-                    if self.is_corner(cell):
-                        cell.color = GREEN
-                    if cell.color is not None:
-                        if self.is_border_cell(cell):
-                            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-                            adj_boarder_1s = [adj_cell for adj_cell in adj_cells if cell.number == 1 and self.is_border_cell(adj_cell)]
-                            for adj_boarder_1 in adj_boarder_1s:
-                                adj_boarder_1.color = cell.color
+                    self.pattern_1s(cell)
 
                 if cell.number == 2:
-                    if self.is_corner(cell):
-                        self.color_adj_cells(cell, BLUE)
-                        diagonal_cell = self.get_corner_diagonal_cell(cell)
-                        if diagonal_cell.number == 3:
-                            diagonal_cell.color = GREEN
-                            cell.color = BLUE
+                    self.pattern_2s(cell)
 
-            if hash_object(copy_grid) == hash_object(self.grid):
-                return False
-            return True
+                if cell.number == 3:
+                    self.pattern_3s(cell)
+
+        if hash_object(copy_grid) == hash_object(self.grid):
+            return False
+        return True
+
+    def pattern_0s(self, cell):
+        if self.is_border_cell(cell) and cell.color is None:
+            cell.color = GREEN
+
+        if cell.color is None:
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            color = [adj_cell.color for adj_cell in adj_cells if cell.color is not None][0]
+            if color:
+                cell.color = color
+
+        if cell.color is not None:
+            self.color_adj_cells(cell, cell.color)
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            adj_3s = [adj_cell for adj_cell in adj_cells if adj_cell.number == 3]
+            for adj_3 in adj_3s:
+                self.color_adj_cells(adj_3, switch_color(cell.color))
+
+    def pattern_1s(self, cell):
+        if self.is_corner(cell) and cell.color is None:
+            cell.color = GREEN
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            adj_3s = [adj_cell for adj_cell in adj_cells if adj_cell.number == 3 and adj_cell.color is None]
+            for adj_3 in adj_3s:
+                adj_3.color = BLUE
+
+        if self.is_border_cell(cell) and cell.color is not None:
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            adj_boarder_1s = [adj_cell for adj_cell in adj_cells
+                              if adj_cell.number == 1 and
+                              self.is_border_cell(adj_cell) and
+                              adj_cell.color is None]
+            for adj_boarder_1 in adj_boarder_1s:
+                adj_boarder_1.color = cell.color
+
+    def pattern_2s(self, cell):
+        if self.is_corner(cell):
+            self.color_adj_cells(cell, BLUE)
+
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            if any([adj_cell for adj_cell in adj_cells if adj_cell.number == 1]):
+                cell.color = BLUE
+
+            diagonal_cell = self.get_corner_diagonal_cell(cell)
+            if diagonal_cell.number == 3:
+                diagonal_cell.color = GREEN
+                cell.color = BLUE
+
+    def pattern_3s(self, cell):
+        if self.is_corner(cell) and cell.color is None:
+            cell.color = BLUE
+
+        if cell.color is not None:
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            adj_3s = [adj_cell for adj_cell in adj_cells if adj_cell.number == 3]
+            for adj_3 in adj_3s:
+                adj_3.color = switch_color(cell.color)
+
+        if cell.color is None and self.is_border_cell(cell):
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            if any([adj_cell for adj_cell in adj_cells
+                    if adj_cell.number == 1 and
+                       self.is_border_cell(adj_cell) and
+                       adj_cell.color is None]):
+                cell.color = BLUE
 
     def color_adj_cells(self, cell, color):
         adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
         for adj_cell in adj_cells:
-            adj_cell.color = color
+            if adj_cell.color is None:
+                adj_cell.color = color
 
     def get_corner_diagonal_cell(self, cell):
         diagonal_to_corner = {
@@ -155,9 +195,3 @@ class Solver:
             if key == (cell.row, cell.col):
                 return self.grid.cells[pos[0]][pos[1]]
         return None
-
-
-
-
-
-
