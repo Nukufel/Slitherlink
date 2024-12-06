@@ -110,6 +110,7 @@ class Grid:
         self.set_number_for_cells()
         start2 = time.time()
         self.remove_numbers()
+        self.remove_colors()
         print("Time to remove numbers: ", time.time() - start2)
 
     def remove_numbers(self):

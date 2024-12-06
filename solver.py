@@ -100,7 +100,7 @@ class Solver:
         return cell.row in {0, GRID_ROWS - 1} or cell.col in {0, GRID_COLS - 1}
 
     def scout_patterns(self):
-        copy_grid = deepcopy(self.grid)
+        initial_hash = hash_object(self.grid)
         for row in self.grid.cells:
             for cell in row:
                 if cell.number is None:
@@ -118,7 +118,7 @@ class Solver:
                 if cell.number == 3:
                     self.pattern_3s(cell)
 
-        if hash_object(copy_grid) == hash_object(self.grid):
+        if initial_hash == hash_object(self.grid):
             return False
         return True
 
@@ -130,44 +130,36 @@ class Solver:
             cell.color = BLUE
 
     def pattern_0s(self, cell):
-        if self.is_border_cell(cell) and cell.color is None:
+        if cell.color is None and self.is_border_cell(cell):
             cell.color = GREEN
 
         if cell.color is None:
             adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            color = [adj_cell.color for adj_cell in adj_cells if cell.color is not None]
-            if color:
-                cell.color = color[0]
+            for adj_cell in adj_cells:
+                if adj_cell.color is not None:
+                    cell.color = adj_cell.color
+                    break
 
         if cell.color is not None:
             self.color_adj_cells(cell, cell.color)
 
             adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            adj_3s = [adj_cell for adj_cell in adj_cells if adj_cell.number == 3]
-            for adj_3 in adj_3s:
-                self.color_adj_cells(adj_3, switch_color(cell.color))
+            for adj_cell in adj_cells:
+                if adj_cell.number == 3 and adj_cell.color is None:
+                    self.color_adj_cells(adj_cell, switch_color(cell.color))
 
             diagonal_cells = self.get_diagonal_cell(cell)
-            diagonal_3s = [diagonal_cell for diagonal_cell in diagonal_cells if diagonal_cell.number == 3]
-            for diagonal_3 in diagonal_3s:
-                diagonal_3.color = switch_color(cell.color)
+            for diagonal_cell in diagonal_cells:
+                if diagonal_cell.number == 3 and diagonal_cell.color is None:
+                    diagonal_cell.color = switch_color(cell.color)
 
     def pattern_1s(self, cell):
-        if self.is_corner(cell) and cell.color is None:
+        if cell.color is None and self.is_corner(cell):
             cell.color = GREEN
             adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            adj_3s = [adj_cell for adj_cell in adj_cells if adj_cell.number == 3 and adj_cell.color is None]
-            for adj_3 in adj_3s:
-                adj_3.color = BLUE
-
-        if self.is_border_cell(cell) and cell.color is not None:
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            adj_boarder_1s = [adj_cell for adj_cell in adj_cells
-                              if adj_cell.number == 1 and
-                              self.is_border_cell(adj_cell) and
-                              adj_cell.color is None]
-            for adj_boarder_1 in adj_boarder_1s:
-                adj_boarder_1.color = cell.color
+            for adj_cell in adj_cells:
+                if adj_cell.number == 3 and adj_cell.color is None:
+                    adj_cell.color = BLUE
 
         if cell.color is None:
             green_count, blue_count = self.count_adj_colors(cell)
@@ -175,38 +167,40 @@ class Solver:
                 cell.color = GREEN
             if blue_count > 1:
                 cell.color = BLUE
+
+        if cell.color is not None and self.is_border_cell(cell):
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            for adj_cell in adj_cells:
+                if adj_cell.number == 1 and self.is_border_cell(adj_cell) and adj_cell.color is None:
+                    adj_cell.color = cell.color
 
     def pattern_2s(self, cell):
         if self.is_corner(cell):
             self.color_adj_cells(cell, BLUE)
 
             adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            if any([adj_cell for adj_cell in adj_cells if adj_cell.number == 1]):
-                cell.color = BLUE
+            for adj_cell in adj_cells:
+                if adj_cell.number == 1:
+                    cell.color = BLUE
+                    break
 
             diagonal_cells = self.get_diagonal_cell(cell)
             for diagonal_cell in diagonal_cells:
                 if diagonal_cell.number == 3:
                     diagonal_cell.color = GREEN
                     cell.color = BLUE
+                    break
 
     def pattern_3s(self, cell):
-        if self.is_corner(cell) and cell.color is None:
+        if cell.color is None and self.is_corner(cell):
             cell.color = BLUE
-
-        if cell.color is not None:
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            adj_3s = [adj_cell for adj_cell in adj_cells if adj_cell.number == 3]
-            for adj_3 in adj_3s:
-                adj_3.color = switch_color(cell.color)
 
         if cell.color is None and self.is_border_cell(cell):
             adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
-            if any([adj_cell for adj_cell in adj_cells
-                    if adj_cell.number == 1 and
-                       self.is_border_cell(adj_cell) and
-                       adj_cell.color is None]):
-                cell.color = BLUE
+            for adj_cell in adj_cells:
+                if adj_cell.number == 1 and self.is_border_cell(adj_cell) and adj_cell.color is None:
+                    cell.color = BLUE
+                    break
 
         if cell.color is None:
             green_count, blue_count = self.count_adj_colors(cell)
@@ -214,6 +208,12 @@ class Solver:
                 cell.color = BLUE
             if blue_count > 1:
                 cell.color = GREEN
+
+        if cell.color is not None:
+            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            for adj_cell in adj_cells:
+                if adj_cell.number == 3 and adj_cell.color is None:
+                    adj_cell.color = switch_color(cell.color)
 
     def color_adj_cells(self, cell, color):
         adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
