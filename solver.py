@@ -16,6 +16,7 @@ class Solver:
     def __init__(self, grid, original_grid):
         self.grid = grid
         self.original_gird = original_grid
+        self.color_count_per_cell = {}
 
     def has_single_solution(self):
         self.grid.remove_colors()
@@ -34,7 +35,7 @@ class Solver:
 
         for color in [GREEN, BLUE]:
             cell.color = color
-            if self.is_possible_solution() and not self.is_original_solution():
+            if self.is_possible_solution(cell) and not self.is_original_solution():
                 if self.solve(cells):
                     return True
 
@@ -54,36 +55,40 @@ class Solver:
                 blue_count += 1
         return green_count, blue_count
 
-    def is_possible_solution(self):
-        for row in self.grid.cells:
-            for cell in row:
 
-                green_count, blue_count = self.count_adj_colors(cell)
+    def is_possible_solution(self, cell):
+        start = time.time()
+        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+        adj_cells.append(cell)
 
-                if cell.color == GREEN:
-                    if cell.number == 3 and green_count > 1:
-                        return False
-                    if cell.number == 1 and blue_count > 1:
-                        return False
-                    if cell.number == 0 and blue_count > 0:
-                        return False
-                elif cell.color == BLUE:
-                    if cell.number == 3 and blue_count > 1:
-                        return False
-                    if cell.number == 1 and green_count > 1:
-                        return False
-                    if cell.number == 0 and green_count > 0:
-                        return False
-                else:
-                    if cell.number in [1, 3] and (
-                            (green_count > 1 and blue_count > 1) or (green_count > 3 or blue_count > 3)):
-                        return False
-                    if cell.number == 0 and green_count > 0 and blue_count > 0:
-                        return False
+        for cell in adj_cells:
 
-                if cell.number == 2 and (green_count > 2 or blue_count > 2):
+            green_count, blue_count = self.count_adj_colors(cell)
+
+            if cell.color == GREEN:
+                if cell.number == 3 and green_count > 1:
+                    return False
+                if cell.number == 1 and blue_count > 1:
+                    return False
+                if cell.number == 0 and blue_count > 0:
+                    return False
+            elif cell.color == BLUE:
+                if cell.number == 3 and blue_count > 1:
+                    return False
+                if cell.number == 1 and green_count > 1:
+                    return False
+                if cell.number == 0 and green_count > 0:
+                    return False
+            else:
+                if cell.number in [1, 3] and (
+                        (green_count > 1 and blue_count > 1) or (green_count > 3 or blue_count > 3)):
+                    return False
+                if cell.number == 0 and green_count > 0 and blue_count > 0:
                     return False
 
+            if cell.number == 2 and (green_count > 2 or blue_count > 2):
+                return False
+        print("Time taken: ", time.time() - start)
         return True
 
     def is_original_solution(self):
@@ -100,50 +105,54 @@ class Solver:
         return cell.row in {0, GRID_ROWS - 1} or cell.col in {0, GRID_COLS - 1}
 
     def scout_patterns(self):
-        initial_hash = hash_object(self.grid)
+        changed = False
         for row in self.grid.cells:
             for cell in row:
+                adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
                 if cell.number is None:
-                    self.pattern_none(cell)
+                    changed = self.pattern_none(cell)
 
                 if cell.number == 0:
-                    self.pattern_0s(cell)
+                    changed = self.pattern_0s(cell, adj_cells)
 
                 if cell.number == 1:
-                    self.pattern_1s(cell)
+                    changed = self.pattern_1s(cell, adj_cells)
 
                 if cell.number == 2:
-                    self.pattern_2s(cell)
+                    changed = self.pattern_2s(cell, adj_cells)
 
                 if cell.number == 3:
-                    self.pattern_3s(cell)
+                    changed = self.pattern_3s(cell, adj_cells)
 
-        if initial_hash == hash_object(self.grid):
-            return False
-        return True
+        return changed
 
     def pattern_none(self, cell):
+        changed = False
         green_count, blue_count = self.count_adj_colors(cell)
         if green_count == 4:
             cell.color = GREEN
+            changed = True
         if blue_count == 4:
             cell.color = BLUE
+            changed = True
 
-    def pattern_0s(self, cell):
+        return changed
+
+    def pattern_0s(self, cell, adj_cells):
+        changed = False
         if cell.color is None and self.is_border_cell(cell):
             cell.color = GREEN
+            changed = True
 
         if cell.color is None:
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
             for adj_cell in adj_cells:
                 if adj_cell.color is not None:
                     cell.color = adj_cell.color
+                    changed = True
                     break
 
         if cell.color is not None:
-            self.color_adj_cells(cell, cell.color)
-
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+            changed = self.color_adj_cells(cell, cell.color)
             for adj_cell in adj_cells:
                 if adj_cell.number == 3 and adj_cell.color is None:
                     self.color_adj_cells(adj_cell, switch_color(cell.color))
@@ -153,73 +162,93 @@ class Solver:
                 if diagonal_cell.number == 3 and diagonal_cell.color is None:
                     diagonal_cell.color = switch_color(cell.color)
 
-    def pattern_1s(self, cell):
+        return changed
+
+    def pattern_1s(self, cell, adj_cells):
+        changed = False
         if cell.color is None and self.is_corner(cell):
             cell.color = GREEN
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
             for adj_cell in adj_cells:
                 if adj_cell.number == 3 and adj_cell.color is None:
                     adj_cell.color = BLUE
+                    changed = True
 
         if cell.color is None:
             green_count, blue_count = self.count_adj_colors(cell)
             if green_count > 1:
                 cell.color = GREEN
+                changed = True
             if blue_count > 1:
                 cell.color = BLUE
+                changed = True
 
         if cell.color is not None and self.is_border_cell(cell):
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
             for adj_cell in adj_cells:
                 if adj_cell.number == 1 and self.is_border_cell(adj_cell) and adj_cell.color is None:
                     adj_cell.color = cell.color
+                    changed = True
 
-    def pattern_2s(self, cell):
+        return changed
+
+    def pattern_2s(self, cell, adj_cells):
+        changed = False
         if self.is_corner(cell):
-            self.color_adj_cells(cell, BLUE)
+            changed = self.color_adj_cells(cell, BLUE)
 
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
             for adj_cell in adj_cells:
-                if adj_cell.number == 1:
+                if adj_cell.number == 1 and cell.color is None:
                     cell.color = BLUE
+                    changed = True
                     break
 
             diagonal_cells = self.get_diagonal_cell(cell)
             for diagonal_cell in diagonal_cells:
-                if diagonal_cell.number == 3:
+                if diagonal_cell.number == 3 and (diagonal_cell.color is None or cell.color is None):
                     diagonal_cell.color = GREEN
                     cell.color = BLUE
+                    changed = True
                     break
 
-    def pattern_3s(self, cell):
+            return changed
+
+    def pattern_3s(self, cell, adj_cells):
+        changed = False
         if cell.color is None and self.is_corner(cell):
             cell.color = BLUE
+            changed = True
 
         if cell.color is None and self.is_border_cell(cell):
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
             for adj_cell in adj_cells:
                 if adj_cell.number == 1 and self.is_border_cell(adj_cell) and adj_cell.color is None:
                     cell.color = BLUE
+                    changed = True
                     break
 
         if cell.color is None:
             green_count, blue_count = self.count_adj_colors(cell)
             if green_count > 1:
                 cell.color = BLUE
+                changed = True
             if blue_count > 1:
                 cell.color = GREEN
+                changed = True
 
         if cell.color is not None:
-            adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
             for adj_cell in adj_cells:
                 if adj_cell.number == 3 and adj_cell.color is None:
                     adj_cell.color = switch_color(cell.color)
+                    changed = True
+
+        return changed
 
     def color_adj_cells(self, cell, color):
+        changed = False
         adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
         for adj_cell in adj_cells:
             if adj_cell.color is None:
                 adj_cell.color = color
+                changed = True
+        return changed
 
     def get_diagonal_cell(self, cell):
         diagonal_cords = [

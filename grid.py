@@ -160,7 +160,6 @@ class Grid:
         return False, None
 
     def get_random_numbered_cell(self):
-        start = time.time()
         while True:
             rand_x = random.randint(0, GRID_ROWS - 1)
             rand_y = random.randint(0, GRID_COLS - 1)
@@ -172,7 +171,6 @@ class Grid:
 
             if cell.number is not None:
                 if random.choice(adj_empty_cells) == cell:
-                    print("Time to get random numbered cell: ", time.time() - start)
                     return cell
 
     def get_adjacent_cells(self, cell, directions):
