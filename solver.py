@@ -15,7 +15,7 @@ CORNERS = [
 class Solver:
     def __init__(self, grid, original_grid):
         self.grid = grid
-        self.original_gird = original_grid
+        self.original_grid = original_grid
         self.color_count_per_cell = {}
 
     def has_single_solution(self):
@@ -55,9 +55,7 @@ class Solver:
                 blue_count += 1
         return green_count, blue_count
 
-
     def is_possible_solution(self, cell):
-        start = time.time()
         adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
         adj_cells.append(cell)
 
@@ -88,13 +86,12 @@ class Solver:
 
             if cell.number == 2 and (green_count > 2 or blue_count > 2):
                 return False
-        print("Time taken: ", time.time() - start)
         return True
 
     def is_original_solution(self):
         for row in self.grid.cells:
             for cell in row:
-                if cell.color != self.original_gird.cells[cell.row][cell.col].color:
+                if cell.color != self.original_grid.cells[cell.row][cell.col].color:
                     return False
         return True
 
@@ -166,7 +163,7 @@ class Solver:
 
     def pattern_1s(self, cell, adj_cells):
         changed = False
-        if cell.color is None and self.is_corner(cell):
+        if self.is_corner(cell) and cell.color is None:
             cell.color = GREEN
             for adj_cell in adj_cells:
                 if adj_cell.number == 3 and adj_cell.color is None:
@@ -182,7 +179,7 @@ class Solver:
                 cell.color = BLUE
                 changed = True
 
-        if cell.color is not None and self.is_border_cell(cell):
+        if self.is_border_cell(cell) and cell.color is not None:
             for adj_cell in adj_cells:
                 if adj_cell.number == 1 and self.is_border_cell(adj_cell) and adj_cell.color is None:
                     adj_cell.color = cell.color
@@ -209,15 +206,15 @@ class Solver:
                     changed = True
                     break
 
-            return changed
+        return changed
 
     def pattern_3s(self, cell, adj_cells):
         changed = False
-        if cell.color is None and self.is_corner(cell):
+        if self.is_corner(cell) and cell.color is None:
             cell.color = BLUE
             changed = True
 
-        if cell.color is None and self.is_border_cell(cell):
+        if self.is_border_cell(cell) and cell.color is None:
             for adj_cell in adj_cells:
                 if adj_cell.number == 1 and self.is_border_cell(adj_cell) and adj_cell.color is None:
                     cell.color = BLUE
