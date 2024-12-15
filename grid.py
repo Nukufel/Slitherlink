@@ -7,30 +7,34 @@ from util import is_next_cell_valid, get_opposite_direction
 from cell import Cell
 from solver import Solver
 import random
+import numpy as np
 
-random.seed(2)
-
+random.seed(5)
 
 class Grid:
     def __init__(self):
-        self.cells = []
         self.action_stack = []
-        # Create the grid
-        self.create_grid()
-
-    def create_grid(self):
-        """Create a grid with cells."""
-        for row in range(GRID_ROWS):
-            cell_row = []
-            for col in range(GRID_COLS):
-                cell = Cell(row, col)
-                cell_row.append(cell)
-            self.cells.append(cell_row)
+        self.cells = np.empty((GRID_ROWS, GRID_COLS), dtype=object)
+        self.initialize_cells()
 
         self.make_puzzle()
 
+    def initialize_cells(self):
+        for row in range(GRID_ROWS):
+            for col in range(GRID_COLS):
+                self.cells[row, col] = Cell(row, col)
+
+    def make_puzzle(self):
+        self.initialize_blue_cells()
+        self.set_boarders_for_cells(DIRECTIONS)
+        self.set_number_for_cells()
+
+        start2 = time.time()
+        self.remove_numbers()
+        self.remove_colors()
+        print("Time to remove numbers: ", time.time() - start2)
+
     def draw(self, window, offset_x=0, offset_y=0):
-        """Draw all the cells with a provided offset."""
         for row in self.cells:
             for cell in row:
                 cell.draw(window, offset_x, offset_y)
@@ -41,7 +45,7 @@ class Grid:
         col, row = x // CELL_SIZE, y // CELL_SIZE
 
         if row < GRID_ROWS and col < GRID_COLS:
-            cell = self.cells[row][col]
+            cell = self.cells[row, col]
             cell_x, cell_y = col * CELL_SIZE, row * CELL_SIZE
 
             # Find the distance to each border
@@ -62,7 +66,7 @@ class Grid:
     def undo(self):
         if self.action_stack:
             row, col, border = self.action_stack.pop()
-            cell = self.cells[row][col]
+            cell = self.cells[row, col]
             self.set_boarder(cell, border)
             self.set_boarder(cell, border)
 
@@ -71,14 +75,14 @@ class Grid:
         blue_percentage = random.randint(BLUE_PERCENTAGE_RANGE[0], BLUE_PERCENTAGE_RANGE[1]) / 100
         projected_blue_count = int(CELL_COUNT * blue_percentage)
 
-        first_blue = self.cells[random.randint(0, GRID_ROWS - 1)][random.randint(0, GRID_COLS - 1)]
-        first_blue.color = BLUE
-        blue_cells = [first_blue]
+        initial_blue = np.random.choice(self.cells.flatten())
+        initial_blue.color = BLUE
+        blue_cells = [initial_blue]
 
         failed_count = 0
 
         while len(blue_cells) < projected_blue_count and failed_count < MAX_FAILED_COUNT:
-            random_blue = random.choice(blue_cells)
+            random_blue = np.random.choice(blue_cells)
 
             adjacent_cells = self.get_adjacent_cells(random_blue, directions)
             weights = self.weight_cell(adjacent_cells, directions, random_blue)
@@ -104,26 +108,17 @@ class Grid:
             else:
                 failed_count += 1
 
-    def make_puzzle(self):
-        self.initialize_blue_cells()
-        self.set_boarders_for_cells(DIRECTIONS)
-        self.set_number_for_cells()
-        start2 = time.time()
-        self.remove_numbers()
-        self.remove_colors()
-        print("Time to remove numbers: ", time.time() - start2)
-
     def remove_numbers(self):
         is_done = False
         amount = REMOVE_AMOUNT
         copy_grid = copy.deepcopy(self)
         solver = Solver(copy_grid, self)
 
-        for _ in range(CELL_COUNT ** 3):
+        for _ in range(CELL_COUNT ** 5):
             value, cells_to_remove = copy_grid.remove_number(solver, amount)
             if value:
                 for copied_cell in cells_to_remove:
-                    cell = self.cells[copied_cell.row][copied_cell.col]
+                    cell = self.cells[copied_cell.row, copied_cell.col]
                     cell.show_number = False
                 is_done = True
                 break
@@ -161,17 +156,9 @@ class Grid:
 
     def get_random_numbered_cell(self):
         while True:
-            rand_x = random.randint(0, GRID_ROWS - 1)
-            rand_y = random.randint(0, GRID_COLS - 1)
-            cell = self.cells[rand_x][rand_y]
-
-            adj_cells = self.get_adjacent_cells(cell, DIRECTIONS)
-            adj_empty_cells = [adj_cell for adj_cell in adj_cells if adj_cell.number is None]
-            adj_empty_cells.append(cell)
-
+            cell = np.random.choice(self.cells.flatten())
             if cell.number is not None:
-                if random.choice(adj_empty_cells) == cell:
-                    return cell
+                return cell
 
     def get_adjacent_cells(self, cell, directions):
         next_cells = []
@@ -179,7 +166,7 @@ class Grid:
             if is_next_cell_valid(cell, direction):
                 row = cell.row + direction[0]
                 col = cell.col + direction[1]
-                next_cells.append(self.cells[row][col])
+                next_cells.append(self.cells[row, col])
         return next_cells
 
     def weight_cell(self, cells, directions, base_cell):
@@ -204,7 +191,7 @@ class Grid:
         while True:
             if not is_next_cell_valid(next_cell, opposite_direction):
                 break
-            next_cell = self.cells[next_cell.row + opposite_direction[0]][next_cell.col + opposite_direction[1]]
+            next_cell = self.cells[next_cell.row + opposite_direction[0], next_cell.col + opposite_direction[1]]
             if next_cell.color == BLUE:
                 count += 1
             else:
@@ -225,7 +212,7 @@ class Grid:
         for start_green in found_greens:
             for d_row, d_col in directions.values():
                 try:
-                    adj_cell = self.cells[start_green.row + d_row][start_green.col + d_col]
+                    adj_cell = self.cells[start_green.row + d_row, start_green.col + d_col]
                     if adj_cell.color != BLUE and adj_cell not in found_greens:
                         found_greens.append(adj_cell)
                 except IndexError:

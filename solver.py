@@ -1,8 +1,6 @@
-import time
-
-from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN, RED, CELL_COUNT
-from util import switch_color, hash_object
-from copy import deepcopy
+from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN
+from util import switch_color
+import numpy as np
 
 CORNERS = [
     (0, 0),
@@ -10,6 +8,8 @@ CORNERS = [
     (GRID_ROWS - 1, GRID_COLS - 1),
     (GRID_ROWS - 1, 0)
 ]
+
+
 
 
 class Solver:
@@ -22,7 +22,7 @@ class Solver:
         self.grid.remove_colors()
         while self.scout_patterns():
             pass
-        cells = [cell for row in self.grid.cells for cell in row if cell.color is None]
+        cells = self.grid.cells.flatten().tolist()
         return not self.solve(cells)
 
     def solve(self, cells):
@@ -91,7 +91,7 @@ class Solver:
     def is_original_solution(self):
         for row in self.grid.cells:
             for cell in row:
-                if cell.color != self.original_grid.cells[cell.row][cell.col].color:
+                if cell.color != self.original_grid.cells[cell.row, cell.col].color:
                     return False
         return True
 
@@ -261,7 +261,7 @@ class Solver:
                 col = cell.col + y
                 if row < 0 or col < 0:
                     raise IndexError
-                diagonal_cells.append(self.grid.cells[row][col])
+                diagonal_cells.append(self.grid.cells[row, col])
             except IndexError:
                 pass
         return diagonal_cells
