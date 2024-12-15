@@ -8,11 +8,12 @@ from cell import Cell
 from solver import Solver
 import random
 
-random.seed(2)
+random.seed(1)
 
 
 class Grid:
     def __init__(self):
+        self.adjacent_cache = {}
         self.cells = []
         self.action_stack = []
         # Create the grid
@@ -67,7 +68,6 @@ class Grid:
             self.set_boarder(cell, border)
 
     def initialize_blue_cells(self):
-        directions = DIRECTIONS
         blue_percentage = random.randint(BLUE_PERCENTAGE_RANGE[0], BLUE_PERCENTAGE_RANGE[1]) / 100
         projected_blue_count = int(CELL_COUNT * blue_percentage)
 
@@ -80,8 +80,8 @@ class Grid:
         while len(blue_cells) < projected_blue_count and failed_count < MAX_FAILED_COUNT:
             random_blue = random.choice(blue_cells)
 
-            adjacent_cells = self.get_adjacent_cells(random_blue, directions)
-            weights = self.weight_cell(adjacent_cells, directions, random_blue)
+            adjacent_cells = self.get_adjacent_cells(random_blue)
+            weights = self.weight_cell(adjacent_cells, random_blue)
             adjacent_weighted_cells = {}
 
             for i, adjacent_cell in enumerate(adjacent_cells):
@@ -96,7 +96,7 @@ class Grid:
 
                 if random_cell not in blue_cells:
                     random_cell.color = BLUE
-                    if self.all_connected(len(blue_cells) + 1, directions):
+                    if self.all_connected(len(blue_cells) + 1, DIRECTIONS):
                         failed_count = 0
                         blue_cells.append(random_cell)
                     else:
@@ -117,6 +117,7 @@ class Grid:
         is_done = False
         amount = REMOVE_AMOUNT
         copy_grid = copy.deepcopy(self)
+        copy_grid.adjacent_cache = {}
         solver = Solver(copy_grid, self)
 
         for _ in range(CELL_COUNT ** 3):
@@ -165,7 +166,7 @@ class Grid:
             rand_y = random.randint(0, GRID_COLS - 1)
             cell = self.cells[rand_x][rand_y]
 
-            adj_cells = self.get_adjacent_cells(cell, DIRECTIONS)
+            adj_cells = self.get_adjacent_cells(cell)
             adj_empty_cells = [adj_cell for adj_cell in adj_cells if adj_cell.number is None]
             adj_empty_cells.append(cell)
 
@@ -173,20 +174,23 @@ class Grid:
                 if random.choice(adj_empty_cells) == cell:
                     return cell
 
-    def get_adjacent_cells(self, cell, directions):
+    def get_adjacent_cells(self, cell):
+        if cell in self.adjacent_cache:
+            return self.adjacent_cache[(cell.row, cell.col)]
         next_cells = []
-        for direction in directions.values():
+        for direction in DIRECTIONS.values():
             if is_next_cell_valid(cell, direction):
                 row = cell.row + direction[0]
                 col = cell.col + direction[1]
                 next_cells.append(self.cells[row][col])
+        self.adjacent_cache[(cell.row, cell.col)] = next_cells
         return next_cells
 
-    def weight_cell(self, cells, directions, base_cell):
+    def weight_cell(self, cells, base_cell):
         scores = []
         for cell in cells:
             score = 100
-            adjacent_cells = self.get_adjacent_cells(cell, directions)
+            adjacent_cells = self.get_adjacent_cells(cell)
             for adjacent_cell in adjacent_cells:
                 if adjacent_cell.color == BLUE:
                     score -= 22
@@ -250,19 +254,31 @@ class Grid:
 
     def set_boarder(self, cell, pos, value=None):
         cell.toggle_border(pos, value)
+
         opposite_border = get_opposite_direction(pos)
-        opposite_direction = {opposite_border: DIRECTIONS[pos]}
-        adjacent_cell = self.get_adjacent_cells(cell, opposite_direction)
-        if adjacent_cell:
-            adjacent_cell[0].toggle_border(opposite_border, value)
+        spc_adj_cell = self.get_specific_adj_cell(cell, pos)
+
+        if spc_adj_cell:
+            spc_adj_cell.toggle_border(opposite_border, value)
+
+    def get_specific_adj_cell(self, cell, pos):
+        adj_cells = self.get_adjacent_cells(cell)
+
+        directio_to_next_cell = DIRECTIONS[pos]
+
+        for adj_cell in adj_cells:
+            if is_next_cell_valid(cell, directio_to_next_cell):
+                if adj_cell == self.cells[cell.row + directio_to_next_cell[0]][cell.col + directio_to_next_cell[1]]:
+                    return adj_cell
+        return None
 
     def set_boarder_results(self, cell, pos, value):
         cell.result[pos] = value
         opposite_border = get_opposite_direction(pos)
-        opposite_direction = {opposite_border: DIRECTIONS[pos]}
-        adjacent_cell = self.get_adjacent_cells(cell, opposite_direction)
-        if adjacent_cell:
-            adjacent_cell[0].result[opposite_border] = value
+
+        spc_adj_cell = self.get_specific_adj_cell(cell, pos)
+        if spc_adj_cell:
+            spc_adj_cell.result[opposite_border] = value
 
     def remove_colors(self):
         for row in self.cells:
@@ -275,8 +291,7 @@ def set_boarders_for_cells(grid, directions):
         for cell in row:
             if cell.color == BLUE:
                 for direction_name, direction in directions.items():
-                    one_direction = {direction_name: direction}
-                    adjacent_cell = grid.get_adjacent_cells(cell, one_direction)
-                    if (adjacent_cell and adjacent_cell[0].color == GREEN) or not adjacent_cell:
+                    adjacent_cell = grid.get_specific_adj_cell(cell, direction_name)
+                    if (adjacent_cell and adjacent_cell.color == GREEN) or not adjacent_cell:
                         grid.set_boarder_results(cell, direction_name, True)
 

@@ -44,7 +44,7 @@ class Solver:
         return False
 
     def count_adj_colors(self, cell):
-        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+        adj_cells = self.grid.get_adjacent_cells(cell)
         green_count = 4 - len(adj_cells)
         blue_count = 0
 
@@ -56,7 +56,7 @@ class Solver:
         return green_count, blue_count
 
     def is_possible_solution(self, cell):
-        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+        adj_cells = self.grid.get_adjacent_cells(cell)
         adj_cells.append(cell)
 
         for cell in adj_cells:
@@ -105,7 +105,7 @@ class Solver:
         changed = False
         for row in self.grid.cells:
             for cell in row:
-                adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+                adj_cells = self.grid.get_adjacent_cells(cell)
                 if cell.number is None:
                     changed = self.pattern_none(cell)
 
@@ -240,7 +240,7 @@ class Solver:
 
     def color_adj_cells(self, cell, color):
         changed = False
-        adj_cells = self.grid.get_adjacent_cells(cell, DIRECTIONS)
+        adj_cells = self.grid.get_adjacent_cells(cell)
         for adj_cell in adj_cells:
             if adj_cell.color is None:
                 adj_cell.color = color
