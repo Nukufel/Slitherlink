@@ -9,7 +9,8 @@ from solver import Solver
 import random
 import numpy as np
 
-random.seed(5)
+random.seed(3)
+np.random.seed(3)
 
 class Grid:
     def __init__(self):
@@ -115,8 +116,8 @@ class Grid:
         solver = Solver(copy_grid, self)
 
         for _ in range(CELL_COUNT ** 5):
-            value, cells_to_remove = copy_grid.remove_number(solver, amount)
-            if value:
+            cells_to_remove = copy_grid.remove_number(solver, amount)
+            if cells_to_remove is not None:
                 for copied_cell in cells_to_remove:
                     cell = self.cells[copied_cell.row, copied_cell.col]
                     cell.show_number = False
@@ -134,7 +135,7 @@ class Grid:
         if removed_cells is None:
             removed_cells = []
         if amount <= 0:
-            return True, removed_cells
+            return removed_cells
 
         cell = self.get_random_numbered_cell()
 
@@ -145,14 +146,14 @@ class Grid:
         removed_cells.append(cell)
 
         if fast_remove or solver.has_single_solution():
-            if self.remove_number(solver, amount - 1, removed_cells)[0]:
-                return True, removed_cells
+            if self.remove_number(solver, amount - 1, removed_cells):
+                return removed_cells
 
         removed_cells.remove(cell)
         cell.number = number
         cell.show_number = True
 
-        return False, None
+        return None
 
     def get_random_numbered_cell(self):
         while True:

@@ -1,3 +1,5 @@
+import time
+
 from settings import DIRECTIONS, GRID_ROWS, GRID_COLS, BLUE, GREEN
 from util import switch_color
 import numpy as np
