@@ -192,7 +192,6 @@ class Solver:
     def pattern_2s(self, cell, adj_cells):
         changed = False
         if self.is_corner(cell):
-            changed = self.color_adj_cells(cell, BLUE)
 
             for adj_cell in adj_cells:
                 if adj_cell.number == 1 and cell.color is None:
